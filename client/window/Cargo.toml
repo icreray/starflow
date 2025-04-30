@@ -1,0 +1,11 @@
+[package]
+name = "starflow-window"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+glued = {path = "../../../glued"}
+
+winit = "0.30.9"
+default = "0.1.2"
+log = "0.4.27"
