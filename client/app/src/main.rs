@@ -29,12 +29,5 @@ impl<'w> FromWindow for ClientApp<'w> {
 
 pub fn main() {
 	env_logger::init();
-	let render_module = future::block_on(
-		RenderModule::new(default())
-	);
-	let app = ClientApp(
-		WindowModule::default(),
-		render_module
-	);
-	WinitRunner::run(app);
+	WinitRunner::run::<ClientApp>();
 }

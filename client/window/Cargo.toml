@@ -4,7 +4,8 @@ version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-glued = {path = "../../../glued"}
+glued = { path = "../../../glued" }
+starflow-util = { path = "../../shared/util" }
 
 winit = "0.30.9"
 default = "0.1.2"

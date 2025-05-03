@@ -2,7 +2,7 @@ pub(crate) use surface::*;
 
 mod surface;
 
-use wgpu::{Adapter, Device, Instance, Queue};
+use wgpu::{Adapter, CommandEncoder, CommandEncoderDescriptor, Device, Instance, Queue};
 
 use crate::GpuContextConfig;
 

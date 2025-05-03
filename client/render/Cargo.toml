@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 glued = { path = "../../../glued" }
-starflow-window = { path = "../window" }
 starflow-util = { path = "../../shared/util", features = ["winit"]}
 
 wgpu = "25.0.0"

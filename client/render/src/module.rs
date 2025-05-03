@@ -1,7 +1,9 @@
-use wgpu::SurfaceTarget;
+use wgpu::{
+	RenderPassColorAttachment, RenderPassDescriptor, SurfaceTarget, 
+	TextureViewDescriptor
+};
 
 use glued::{module::Module, module_impl};
-use starflow_window::WindowModule;
 use starflow_util::Size;
 
 use crate::{core::{GpuContext, RenderSurface}, GpuContextConfig};
@@ -10,49 +12,31 @@ use crate::{core::{GpuContext, RenderSurface}, GpuContextConfig};
 pub struct RenderModule<'window> {
 	context: GpuContext,
 	// Naive approach
-	surface: Option<RenderSurface<'window>>
+	surface: RenderSurface<'window>
 	
 }
 
 impl<'w> RenderModule<'w> {
-	pub async fn new(config: GpuContextConfig<'_>) -> Self {
-		Self {
-			context: GpuContext::new(config).await,
-			surface: None
-		}
-	}
+	pub async fn new(
+		config: GpuContextConfig<'_>,
+		surface_target: impl Into<SurfaceTarget<'w>>,
+		surface_size: Size<u32>
+	) -> Self {
+		let context = GpuContext::new(config).await;
+		let surface = RenderSurface::configured(
+			surface_target, surface_size, &context
+		).expect("Failed to create surface");
 
-	pub fn insert_surface(
-		&mut self,
-		target: impl Into<SurfaceTarget<'w>>, 
-		size: Size<u32>
-	) {
-		self.surface = RenderSurface::configured(
-			target, size, &self.context
-		);
+		Self { context, surface }
 	}
 }
 
 #[module_impl(A)]
 impl RenderModule<'_> {
-	#[requires(Self, WindowModule)]
-	pub fn setup(app: &mut A) {
-		let window = app.module::<WindowModule>()
-			.window
-			.as_ref()
-			.expect("Window is unitialized on setup stage")
-			.clone();
-		let size = Size::from(window.inner_size());
-		app.module_mut::<Self>()
-			.insert_surface(window, size);
-	}
-
 	#[requires(Self)]
 	pub fn update(app: &mut A) {
 		let renderer = app.module_mut::<Self>();
 		let swapchain_texture = renderer.surface
-			.as_mut()
-			.unwrap()
 			.get_swapchain_texture(&renderer.context.device)
 			.expect("Failed to obtain swapchain texture");
 
@@ -70,7 +54,7 @@ impl RenderModule<'_> {
 				resolve_target: None,
 				ops: wgpu::Operations { 
 					load: wgpu::LoadOp::Clear(wgpu::Color {
-						r: 0.1, g: 0.1, b: 0.2, a: 1.0
+						r: 0.0066, g: 0.0018, b: 0.011, a: 1.0
 					}), 
 					store: wgpu::StoreOp::Store 
 				}
