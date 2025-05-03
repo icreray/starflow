@@ -1,6 +1,6 @@
-mod surface;
-
 pub(crate) use surface::*;
+
+mod surface;
 
 use wgpu::{Adapter, Device, Instance, Queue};
 
@@ -29,5 +29,11 @@ impl GpuContext {
 		Self {
 			instance, adapter, device, queue
 		}
+	}
+
+	pub fn create_encoder(&self, label: &str) -> CommandEncoder {
+		self.device.create_command_encoder(&CommandEncoderDescriptor {
+			label: Some(label)
+		})
 	}
 }
