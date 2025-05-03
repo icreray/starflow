@@ -10,3 +10,4 @@ starflow-render = { path = "../render" }
 
 default = "0.1.2"
 futures-lite = "2.6.0"
+env_logger = "0.11.8"
