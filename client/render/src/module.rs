@@ -3,12 +3,11 @@ use wgpu::{
 	TextureViewDescriptor
 };
 
-use glued::{module::Module, module_impl};
+use glued::module_impl;
 use starflow_util::Size;
 
 use crate::{core::{GpuContext, RenderSurface}, GpuContextConfig};
 
-#[derive(Module)]
 pub struct RenderModule<'window> {
 	context: GpuContext,
 	// Naive approach

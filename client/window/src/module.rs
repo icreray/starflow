@@ -2,15 +2,12 @@ use std::sync::Arc;
 
 pub use winit::window::Window as WinitWindow;
 
-use glued::{module::Module, module_impl};
+use glued::module_impl;
 use starflow_util::Size;
 
-#[derive(Module)]
 pub struct WindowModule {
 	pub window: Arc<WinitWindow>
 }
-
-
 
 impl WindowModule {
 	pub fn new(window: WinitWindow) -> Self {
