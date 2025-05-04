@@ -75,7 +75,7 @@ impl<'l> GpuContextConfig<'l> {
 	}
 }
 
-impl<'l> GpuContextConfig<'l> {
+impl GpuContextConfig<'_> {
 	pub(crate) fn instance_descriptor(&self) -> InstanceDescriptor {
 		InstanceDescriptor {
 			backends: self.backends,

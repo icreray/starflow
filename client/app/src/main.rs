@@ -11,7 +11,7 @@ struct ClientApp<'window>(
 );
 
 // FIXME: Better way to initialize app
-impl<'w> From<WinitWindow> for ClientApp<'w> {
+impl From<WinitWindow> for ClientApp<'_> {
 	fn from(window: WinitWindow) -> Self {
 		let window_module = WindowModule::new(window)
 			.with_title("Starflow");
