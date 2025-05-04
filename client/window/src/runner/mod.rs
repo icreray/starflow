@@ -3,14 +3,16 @@ mod handler;
 use log::error;
 use winit::{event_loop::{ControlFlow, EventLoop}, window::Window};
 
-use glued::ModularApp;
+use glued::{AppRunner, ModularApp};
 
 use crate::runner::handler::AppHandler;
 
 pub struct WinitRunner;
-impl WinitRunner {
-	pub fn run<A>()
-	where A: ModularApp + FromWindow {
+impl AppRunner for WinitRunner {
+	type Context = Window;
+
+	fn run<A>()
+	where A: ModularApp + From<Self::Context> {
 		// FIXME replace `except` with proper error handling
 		let event_loop = EventLoop::new()
 			.expect("Failed to create event loop");
@@ -22,8 +24,4 @@ impl WinitRunner {
 			error!("winit event_loop exited with an error: {}", err);
 		}
 	}
-}
-
-pub trait FromWindow {
-	fn from(window: Window) -> Self;
 }

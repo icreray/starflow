@@ -2,12 +2,10 @@ use default::default;
 
 use winit::{
 	application::ApplicationHandler, event::WindowEvent, 
-	event_loop::ActiveEventLoop, window::WindowId
+	event_loop::ActiveEventLoop, window::{Window, WindowId}
 };
 
 use glued::ModularApp;
-
-use crate::FromWindow;
 
 pub(super) struct AppHandler<A>
 where A: ModularApp {
@@ -22,7 +20,7 @@ where A: ModularApp {
 }
 
 impl<A> ApplicationHandler for AppHandler<A>
-where A: ModularApp + FromWindow {
+where A: ModularApp + From<Window> {
 	fn resumed(&mut self, event_loop: &ActiveEventLoop) {
 		if self.app.is_none() {
 			let window = event_loop.create_window(default())
