@@ -49,7 +49,7 @@ where A: ModularApp + From<Window> {
 
 impl<A> AppHandler<A>
 where A: ModularApp {
-	/// ### Safety
+	/// # Safety
 	/// App should be [`Option::Some`] after [`ApplicationHandler::resumed`] is called
 	#[must_use]
 	#[inline(always)]
