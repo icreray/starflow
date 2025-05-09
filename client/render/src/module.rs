@@ -31,8 +31,8 @@ impl<'w> RenderModule<'w> {
 }
 
 #[module_impl(A)]
+#[dependencies(Self)]
 impl RenderModule<'_> {
-	#[requires(Self)]
 	pub fn update(app: &mut A) {
 		let renderer = app.module_mut::<Self>();
 		let swapchain_texture = renderer.surface
