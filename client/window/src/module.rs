@@ -20,18 +20,16 @@ impl WindowModule {
 		self
 	}
 
-	pub fn create_context(&self) -> WindowContext {
-		let size = self.window.inner_size()
-			.into();
-		let window = self.window.clone();
-		WindowContext {window, size}
+	pub fn clone_handle(&self) -> Arc<WinitWindow> {
+		self.window.clone()
+	}
+
+	pub fn size(&self) -> Size<u32> {
+		self.window
+			.inner_size()
+			.into()
 	}
 }
 
 #[module_impl(A)]
 impl WindowModule {}
-
-pub struct WindowContext {
-	pub window: Arc<WinitWindow>,
-	pub size: Size<u32>
-}
