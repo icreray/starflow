@@ -1,13 +1,13 @@
 use futures_lite::future;
 
 use glued::{AppRunner, ModularApp};
-use starflow_render::{GpuContextConfig, RenderModule};
+use starflow_render::{GpuContextConfig, Renderer};
 use starflow_window::{WinitWindow, WindowModule, WinitRunner};
 
 #[derive(ModularApp)]
 struct ClientApp<'window>(
 	WindowModule,
-	RenderModule<'window>
+	Renderer<'window>
 );
 
 // FIXME: Better way to initialize app
@@ -16,7 +16,7 @@ impl From<WinitWindow> for ClientApp<'_> {
 		let window_module = WindowModule::new(window)
 			.with_title("Starflow");
 		let reder_module = future::block_on(
-			RenderModule::new(
+			Renderer::new(
 				GpuContextConfig::default(), 
 				window_module.clone_handle(), 
 				window_module.size()

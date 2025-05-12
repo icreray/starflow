@@ -1,6 +1,8 @@
 pub(crate) use surface::*;
+pub(crate) use frame::*;
 
 mod surface;
+mod frame;
 
 use wgpu::{Adapter, CommandEncoder, CommandEncoderDescriptor, Device, Instance, Queue};
 

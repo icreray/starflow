@@ -1,6 +1,8 @@
+use default::default;
+
 use wgpu::{
-	Device, Surface, SurfaceConfiguration, SurfaceError, 
-	SurfaceTarget, SurfaceTexture
+	Color, Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface, 
+	SurfaceConfiguration, SurfaceError, SurfaceTarget, SurfaceTexture, TextureView
 };
 
 use starflow_util::Size;
@@ -32,7 +34,9 @@ impl<'w> RenderSurface<'w> {
 		Some(Self { surface, config })
 	}
 
-	pub fn get_swapchain_texture(&self, device: &Device) -> Result<SurfaceTexture, SurfaceError> {
+	pub fn get_swapchain_texture(
+		&self, device: &Device
+	) -> Result<SwapchainTexture, SurfaceError> {
 		let texture = match self.surface.get_current_texture() {
 			Ok(texture) => texture,
 			Err(SurfaceError::Outdated) => {
@@ -41,7 +45,9 @@ impl<'w> RenderSurface<'w> {
 			}
 			Err(e) => return Err(e)
 		};
-		Ok(texture)
+		let view = texture.texture
+			.create_view(&default());
+		Ok(SwapchainTexture { texture, view })
 	}
 
 	#[allow(dead_code)]
@@ -54,5 +60,27 @@ impl<'w> RenderSurface<'w> {
 	#[inline(always)]
 	fn reconfigure(&self, device: &Device) {
 		self.surface.configure(device, &self.config);
+	}
+}
+
+pub(crate) struct SwapchainTexture {
+	texture: SurfaceTexture,
+	view: TextureView
+}
+
+impl SwapchainTexture {
+	pub fn clear_attachment(&self, color: Color) -> RenderPassColorAttachment {
+		RenderPassColorAttachment {
+			view: &self.view, 
+			resolve_target: None, 
+			ops: wgpu::Operations { 
+				load: LoadOp::Clear(color), 
+				store: StoreOp::Store
+			}
+		}
+	}
+
+	pub fn present(self) {
+		self.texture.present();
 	}
 }
