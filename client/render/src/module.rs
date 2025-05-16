@@ -1,6 +1,4 @@
-use wgpu::{
-	Color, RenderPassDescriptor, SurfaceTarget
-};
+use wgpu::SurfaceTarget;
 
 use glued::module_impl;
 use starflow_util::Size;
