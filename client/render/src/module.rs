@@ -5,13 +5,13 @@ use wgpu::{
 use glued::module_impl;
 use starflow_util::Size;
 
-use crate::{core::{FrameContext, GpuContext, RenderSurface}, GpuContextConfig};
+use crate::{core::{FrameContext, GpuContext, RenderSurface}, graph::RenderGraph, scene::Scene, GpuContextConfig};
 
 pub struct Renderer<'window> {
 	context: GpuContext,
 	// Naive approach
-	surface: RenderSurface<'window>
-	
+	surface: RenderSurface<'window>,
+	scene: Scene
 }
 
 impl<'w> Renderer<'w> {
@@ -25,11 +25,10 @@ impl<'w> Renderer<'w> {
 			surface_target, surface_size, &context
 		).expect("Failed to create surface");
 
-		Self { context, surface }
+		Self { context, surface, scene: Scene {} }
 	}
 
-	fn draw_frame<F>(&self, f: F)
-	where F: FnOnce(&mut FrameContext) {
+	fn draw_frame(&self) {
 		let encoder = self.context.create_encoder("main_encoder");
 		let swapchain_texture = self.surface
 			.get_swapchain_texture(&self.context.device)
@@ -39,7 +38,7 @@ impl<'w> Renderer<'w> {
 			&self.context.queue, 
 			swapchain_texture
 		);
-		f(&mut frame);
+		RenderGraph::run(&mut frame, &self.scene);
 		frame.finish();
 	}
 }
@@ -48,16 +47,6 @@ impl<'w> Renderer<'w> {
 #[dependencies(Self)]
 impl Renderer<'_> {
 	pub fn update(app: &mut A) {
-		app.module::<Self>().draw_frame(|frame| {
-			let attachment = frame.texture
-				.clear_attachment(Color { r: 0.0066, g: 0.0018, b: 0.011, a: 1.0 });
-			frame.encoder.begin_render_pass(&RenderPassDescriptor { 
-				label: Some("clear_pass"),
-				color_attachments: &[Some(attachment)],
-				depth_stencil_attachment: None,
-				timestamp_writes: None, 
-				occlusion_query_set: None 
-			});
-		});
+		app.module::<Self>().draw_frame();
 	}
 }
