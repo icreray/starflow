@@ -15,14 +15,14 @@ impl From<WinitWindow> for ClientApp<'_> {
 	fn from(window: WinitWindow) -> Self {
 		let window_module = WindowModule::new(window)
 			.with_title("Starflow");
-		let reder_module = future::block_on(
+		let renderer = future::block_on(
 			Renderer::new(
-				GpuContextConfig::default(), 
-				window_module.clone_handle(), 
+				GpuContextConfig::default(),
+				window_module.clone_handle(),
 				window_module.size()
 			)
 		);
-		Self (window_module, reder_module)
+		Self (window_module, renderer)
 	}
 }
 
