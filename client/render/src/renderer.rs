@@ -1,19 +1,24 @@
+use default::default;
+
 use wgpu::SurfaceTarget;
 
 use glued::module_impl;
 use starflow_util::Size;
 
 use crate::{
-	core::{FrameContext, GpuContext, RenderSurface}, 
-	graph::RenderGraph, 
+	core::{FrameContext, GpuContext, RenderSurface},
+	graph::RenderGraph,
+	resources::Pipelines,
 	scene::Scene, GpuContextConfig
 };
+
 
 pub struct Renderer<'window> {
 	context: GpuContext,
 	// Naive approach
 	surface: RenderSurface<'window>,
-	scene: Scene
+	scene: Scene,
+	pipelines: Pipelines
 }
 
 impl<'w> Renderer<'w> {
@@ -27,7 +32,12 @@ impl<'w> Renderer<'w> {
 			surface_target, surface_size, &context
 		).expect("Failed to create surface");
 
-		Self { context, surface, scene: Scene {} }
+		Self {
+			context,
+			surface,
+			scene: default(),
+			pipelines: default()
+		}
 	}
 
 	fn draw_frame(&self) {
@@ -40,10 +50,15 @@ impl<'w> Renderer<'w> {
 			encoder,
 			swapchain_texture
 		);
-		RenderGraph::run(&mut frame, &self.scene);
+		RenderGraph::run(
+			&mut frame, 
+			&self.scene, 
+			&self.pipelines
+		);
 		frame.finish(&self.context.queue);
 	}
 }
+
 
 #[module_impl(A)]
 #[dependencies(Self)]
