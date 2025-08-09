@@ -1,10 +1,14 @@
 use wgpu::{RenderPassDescriptor, Color};
 
-use crate::{core::FrameContext, scene::Scene};
+use crate::{core::FrameContext, resources::Pipelines, scene::Scene};
 
 pub(crate) struct RenderGraph;
 impl RenderGraph {
-	pub fn run(frame: &mut FrameContext, _scene: &Scene) {
+	pub fn run(
+		frame: &mut FrameContext,
+		_scene: &Scene,
+		_pipelines: &Pipelines
+	) {
 		let attachment = frame.texture
 			.clear_attachment(Color { r: 0.0066, g: 0.0018, b: 0.011, a: 1.0 });
 		frame.encoder.begin_render_pass(&RenderPassDescriptor { 

@@ -1,8 +1,9 @@
 pub use config::GpuContextConfig;
-pub use module::*;
+pub use renderer::*;
 
 mod core;
 mod config;
 mod graph;
-mod module;
+mod renderer;
+mod resources;
 mod scene;
