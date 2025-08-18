@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-glued = { path = "../../../glued" }
-starflow-util = { path = "../../shared/util", features = ["winit"]}
+glued = { workspace = true }
+starflow-util = { workspace = true, features = ["winit"] }
 
 wgpu = "25.0.0"
 default = "0.1.2"

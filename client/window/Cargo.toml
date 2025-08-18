@@ -4,9 +4,9 @@ version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-glued = { path = "../../../glued" }
-starflow-util = { path = "../../shared/util" }
+glued = { workspace = true }
+starflow-util = { workspace = true }
 
-winit = "0.30.9"
+winit = { workspace = true }
 default = "0.1.2"
 log = "0.4.27"

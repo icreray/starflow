@@ -7,4 +7,4 @@ edition = "2024"
 winit = ["dep:winit"]
 
 [dependencies]
-winit = { version = "0.30.9", optional = true }
+winit = { workspace = true, optional = true }

@@ -4,9 +4,9 @@ version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-glued = {path = "../../../glued"}
-starflow-window = { path = "../window" }
-starflow-render = { path = "../render" }
+glued = { workspace = true }
+starflow-window = { workspace = true }
+starflow-render = { workspace = true }
 
 default = "0.1.2"
 futures-lite = "2.6.0"
