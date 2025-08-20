@@ -4,15 +4,16 @@ use log::error;
 use winit::{
 	application::ApplicationHandler, event::WindowEvent,
 	event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-	window::{Window, WindowId}
+	window::WindowId
 };
 
 use glued::{AppRunner, ModularApp};
+use crate::WindowModule;
 
 
 pub struct WinitRunner;
 impl AppRunner for WinitRunner {
-	type Context = Window;
+	type Context = WindowModule;
 
 	fn run<A>()
 	where A: ModularApp + From<Self::Context> {
@@ -43,12 +44,12 @@ where A: ModularApp {
 }
 
 impl<A> ApplicationHandler for AppHandler<A>
-where A: ModularApp + From<Window> {
+where A: ModularApp + From<WindowModule> {
 	fn resumed(&mut self, event_loop: &ActiveEventLoop) {
 		if self.app.is_none() {
 			let window = event_loop.create_window(default())
 				.expect("Failed to create window");
-			self.app = Some(A::from(window));
+			self.app = Some(A::from(WindowModule::new(window)));
 			self.app_mut().setup();
 		}
 	}
