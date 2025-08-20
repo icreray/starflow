@@ -1,8 +1,9 @@
 use default::default;
 
 use wgpu::{
-	Color, Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface, 
-	SurfaceConfiguration, SurfaceError, SurfaceTarget, SurfaceTexture, TextureView
+	Color, Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface,
+	SurfaceConfiguration, SurfaceError, SurfaceTarget, SurfaceTexture,
+	TextureFormat, TextureView
 };
 
 use starflow_util::Size;
@@ -32,6 +33,10 @@ impl<'w> RenderSurface<'w> {
 
 		surface.configure(&context.device, &config);
 		Some(Self { surface, config })
+	}
+
+	pub fn texture_format(&self) -> TextureFormat {
+		self.config.format
 	}
 
 	pub fn get_swapchain_texture(
@@ -69,7 +74,17 @@ pub(crate) struct SwapchainTexture {
 }
 
 impl SwapchainTexture {
-	pub fn clear_attachment(&self, color: Color) -> RenderPassColorAttachment {
+	#[inline]
+	pub fn width(&self) -> u32 {
+		self.texture.texture.width()
+	}
+
+	#[inline]
+	pub fn height(&self) -> u32 {
+		self.texture.texture.height()
+	}
+
+	pub fn clear_attachment(&'_ self, color: Color) -> RenderPassColorAttachment<'_> {
 		RenderPassColorAttachment {
 			view: &self.view, 
 			resolve_target: None, 
