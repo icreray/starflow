@@ -9,6 +9,7 @@ use wgpu::{
 use starflow_util::Size;
 use crate::core::GpuContext;
 
+
 pub(crate) struct RenderSurface<'window> {
 	surface: Surface<'window>,
 	config: SurfaceConfiguration
@@ -67,6 +68,7 @@ impl<'w> RenderSurface<'w> {
 		self.surface.configure(device, &self.config);
 	}
 }
+
 
 pub(crate) struct SwapchainTexture {
 	texture: SurfaceTexture,

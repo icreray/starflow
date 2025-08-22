@@ -3,6 +3,7 @@ use default::default;
 pub use wgpu::{Backends, Features, InstanceFlags, Label, Limits, MemoryHints, PowerPreference};
 use wgpu::{DeviceDescriptor, InstanceDescriptor, RequestAdapterOptions, Trace};
 
+
 pub struct GpuContextConfig<'label> {
 	pub instance_flags: InstanceFlags,
 	pub backends: Backends,

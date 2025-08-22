@@ -4,6 +4,7 @@ use glued::{AppRunner, ModularApp};
 use starflow_render::{GpuContextConfig, Renderer};
 use starflow_window::{WindowModule, WinitRunner};
 
+
 #[derive(ModularApp)]
 struct ClientApp<'window>(
 	WindowModule,

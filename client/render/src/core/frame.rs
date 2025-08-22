@@ -2,6 +2,7 @@ use wgpu::{CommandEncoder, Device, Queue};
 
 use super::SwapchainTexture;
 
+
 pub(crate) struct FrameContext<'frame> {
 	pub device: &'frame Device,
 	pub encoder: CommandEncoder,
