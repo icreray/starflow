@@ -8,35 +8,43 @@ use starflow_util::Size;
 use crate::{
 	core::{FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
-	resources::Pipelines,
-	scene::Scene, GpuContextConfig
+	scene::Scene, GpuContextConfig,
+	util::SizedSurfaceTarget
 };
 
 
 pub struct Renderer<'window> {
 	context: GpuContext,
-	// Naive approach
 	surface: RenderSurface<'window>,
-	scene: Scene,
-	pipelines: Pipelines
+	resources: RenderResources,
+	scene: Scene
 }
 
 impl<'w> Renderer<'w> {
 	pub async fn new(
 		config: GpuContextConfig<'_>,
-		surface_target: impl Into<SurfaceTarget<'w>>,
-		surface_size: Size<u32>
+		surface_target: impl Into<SizedSurfaceTarget<'w>>
 	) -> Self {
 		let context = GpuContext::new(config).await;
+
+		let target: SizedSurfaceTarget = surface_target.into();
 		let surface = RenderSurface::configured(
-			surface_target, surface_size, &context
+			target.target, target.size, &context
 		).expect("Failed to create surface");
+
+		let resources = RenderResources::new(
+			&context.device, surface.texture_format()
+		);
+		let scene = Scene::new(
+			&context.device,
+			&resources.bind_group_layouts
+		);
 
 		Self {
 			context,
 			surface,
-			scene: default(),
-			pipelines: default()
+			resources,
+			scene
 		}
 	}
 
@@ -51,9 +59,9 @@ impl<'w> Renderer<'w> {
 			swapchain_texture
 		);
 		RenderGraph::run(
-			&mut frame, 
-			&self.scene, 
-			&self.pipelines
+			&mut frame,
+			&self.scene,
+			&self.resources
 		);
 		frame.finish(&self.context.queue);
 	}

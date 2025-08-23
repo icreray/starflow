@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 glued = { workspace = true }
 starflow-window = { workspace = true }
-starflow-render = { workspace = true }
+starflow-render = { workspace = true, features = ["winit"] }
 
 default = "0.1.2"
 futures-lite = "2.6.0"

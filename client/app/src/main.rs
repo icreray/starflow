@@ -18,8 +18,7 @@ impl From<WindowModule> for ClientApp<'_> {
 		let renderer = future::block_on(
 			Renderer::new(
 				GpuContextConfig::default(),
-				window.clone_handle(),
-				window.size()
+				window.clone_handle()
 			)
 		);
 		Self (window, renderer)

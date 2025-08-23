@@ -3,9 +3,14 @@ name = "starflow-render"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+winit = ["dep:winit"]
+
 [dependencies]
 glued = { workspace = true }
 starflow-util = { workspace = true, features = ["winit"] }
 
 wgpu = "25.0.0"
 default = "0.1.2"
+
+winit = { workspace = true, optional = true}

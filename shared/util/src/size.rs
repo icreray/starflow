@@ -11,9 +11,9 @@ impl<T> Size<T> {
 
 #[cfg(feature = "winit")]
 #[allow(unused_imports)]
-pub use winit::*;
+pub use winit_features::*;
 #[cfg(feature = "winit")]
-mod winit {
+mod winit_features {
 	use ::winit::dpi::PhysicalSize;
 	use winit::dpi::Pixel;
 	use super::Size;
