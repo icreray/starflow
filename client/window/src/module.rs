@@ -5,6 +5,7 @@ use winit::window::Window;
 use glued::module_impl;
 use starflow_util::Size;
 
+
 pub struct WindowModule {
 	pub window: Arc<Window>
 }
