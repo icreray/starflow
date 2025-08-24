@@ -1,10 +1,9 @@
 use glued::module_impl;
 
 use crate::{
-	core::{FrameContext, GpuContext, RenderSurface},
+	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
 	resources::RenderResources,
-	util::SizedSurfaceTarget,
 	GpuContextConfig
 };
 

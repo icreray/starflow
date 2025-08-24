@@ -6,7 +6,10 @@ use wgpu::{
 };
 
 use starflow_util::Size;
-use crate::{core::RenderSurface, resources::{BindGroupLayouts, Pipelines}, util::AsBindGroupEntry};
+use crate::{
+	core::{util::AsBindGroupEntry, RenderSurface},
+	resources::{BindGroupLayouts, Pipelines}
+};
 
 
 pub(crate) struct RenderResources {

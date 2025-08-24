@@ -1,7 +1,6 @@
 pub use config::*;
 pub use renderer::*;
 
-pub mod util;
 
 mod core;
 mod config;

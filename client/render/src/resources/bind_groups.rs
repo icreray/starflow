@@ -21,9 +21,12 @@ impl BindGroupLayouts {
 
 mod assets {
 	use wgpu::{
-		BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, Device,
-		ShaderStages, StorageTextureAccess, TextureFormat, TextureViewDimension
+		BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, Device,
+		ShaderStages, StorageTextureAccess, TextureFormat
 	};
+
+	use crate::core::util::texture_storage_2d;
+
 
 	pub(super) fn create_output_texture_bind_group_layout(device: &Device) -> BindGroupLayout {
 		device.create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -32,11 +35,7 @@ mod assets {
 				BindGroupLayoutEntry {
 					binding: 0,
 					visibility: ShaderStages::COMPUTE,
-					ty: BindingType::StorageTexture {
-						access: StorageTextureAccess::WriteOnly,
-						format: TextureFormat::Rgba8Unorm,
-						view_dimension: TextureViewDimension::D2
-					},
+					ty: texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly),
 					count: None
 				}
 			]
@@ -50,11 +49,7 @@ mod assets {
 				BindGroupLayoutEntry {
 					binding: 0,
 					visibility: ShaderStages::FRAGMENT,
-					ty: BindingType::StorageTexture {
-						access: StorageTextureAccess::ReadOnly,
-						format: TextureFormat::Rgba8Unorm,
-						view_dimension: TextureViewDimension::D2
-					},
+					ty: texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly),
 					count: None
 				}
 			]

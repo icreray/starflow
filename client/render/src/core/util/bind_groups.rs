@@ -26,3 +26,13 @@ impl AsBindGroupEntry for Sampler {
 		BindGroupEntry { binding, resource: BindingResource::Sampler(self)}
 	}
 }
+
+
+pub(crate) use binding_types::*;
+mod binding_types {
+	use wgpu::{BindingType, StorageTextureAccess, TextureFormat, TextureViewDimension};
+
+	pub fn texture_storage_2d(format: TextureFormat, access: StorageTextureAccess) -> BindingType {
+		BindingType::StorageTexture { access, format, view_dimension: TextureViewDimension::D2 }
+	}
+}
