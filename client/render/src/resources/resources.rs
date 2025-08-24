@@ -10,7 +10,8 @@ use crate::{core::RenderSurface, resources::{BindGroupLayouts, Pipelines}, util:
 
 
 pub(crate) struct RenderResources {
-	pub bind_group_layouts: BindGroupLayouts,
+	#[allow(dead_code)]
+	bind_group_layouts: BindGroupLayouts,
 	pub pipelines: Pipelines,
 	pub allocated: AllocatedResources
 }
@@ -35,6 +36,7 @@ impl RenderResources {
 
 
 // TODO: Refactoring :D
+#[allow(dead_code)]
 pub(crate) struct AllocatedResources {
 	output_texture: Texture,
 	output_texture_view: TextureView,

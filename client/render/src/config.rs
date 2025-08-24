@@ -85,7 +85,7 @@ impl GpuContextConfig<'_> {
 		}
 	}
 
-	pub(crate) fn request_adapter_options(&self) -> RequestAdapterOptions {
+	pub(crate) fn request_adapter_options<'s>(&self) -> RequestAdapterOptions<'_, 's> {
 		RequestAdapterOptions {
 			power_preference: self.power_preference,
 			force_fallback_adapter: false,
@@ -93,7 +93,7 @@ impl GpuContextConfig<'_> {
 		}
 	}
 
-	pub(crate) fn device_descriptor(&self) -> DeviceDescriptor {
+	pub(crate) fn device_descriptor(&self) -> DeviceDescriptor<'_> {
 		DeviceDescriptor {
 			label: self.device_label,
 			required_features: self.required_features,
