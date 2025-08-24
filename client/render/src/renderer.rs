@@ -1,23 +1,18 @@
-use default::default;
-
-use wgpu::SurfaceTarget;
-
 use glued::module_impl;
-use starflow_util::Size;
 
 use crate::{
 	core::{FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
-	scene::Scene, GpuContextConfig,
-	util::SizedSurfaceTarget
+	resources::RenderResources,
+	util::SizedSurfaceTarget,
+	GpuContextConfig
 };
 
 
 pub struct Renderer<'window> {
 	context: GpuContext,
 	surface: RenderSurface<'window>,
-	resources: RenderResources,
-	scene: Scene
+	resources: RenderResources
 }
 
 impl<'w> Renderer<'w> {
@@ -33,18 +28,13 @@ impl<'w> Renderer<'w> {
 		).expect("Failed to create surface");
 
 		let resources = RenderResources::new(
-			&context.device, surface.texture_format()
-		);
-		let scene = Scene::new(
-			&context.device,
-			&resources.bind_group_layouts
+			&context.device, &surface
 		);
 
 		Self {
 			context,
 			surface,
-			resources,
-			scene
+			resources
 		}
 	}
 
@@ -54,13 +44,11 @@ impl<'w> Renderer<'w> {
 			.get_swapchain_texture(&self.context.device)
 			.expect("Failed to obtain texture");
 		let mut frame = FrameContext::new(
-			&self.context.device,
 			encoder,
 			swapchain_texture
 		);
 		RenderGraph::run(
 			&mut frame,
-			&self.scene,
 			&self.resources
 		);
 		frame.finish(&self.context.queue);

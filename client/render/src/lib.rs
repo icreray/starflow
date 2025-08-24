@@ -1,4 +1,4 @@
-pub use config::GpuContextConfig;
+pub use config::*;
 pub use renderer::*;
 
 pub mod util;
@@ -8,4 +8,3 @@ mod config;
 mod graph;
 mod renderer;
 mod resources;
-mod scene;

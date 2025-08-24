@@ -8,4 +8,6 @@ starflow-client-app = { path = "client/app" }
 starflow-render = { path = "client/render" }
 starflow-window = { path = "client/window" }
 starflow-util = { path = "shared/util" }
+
+wgpu = "25.0.0"
 winit = "0.30.12"

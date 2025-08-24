@@ -40,6 +40,10 @@ impl<'w> RenderSurface<'w> {
 		self.config.format
 	}
 
+	pub fn size(&self) -> Size<u32> {
+		Size::new(self.config.width, self.config.height)
+	}
+
 	pub fn get_swapchain_texture(
 		&self, device: &Device
 	) -> Result<SwapchainTexture, SurfaceError> {

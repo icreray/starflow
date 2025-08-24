@@ -1,21 +1,19 @@
-use wgpu::{CommandEncoder, Device, Queue};
+use wgpu::{CommandEncoder, Queue};
 
 use super::SwapchainTexture;
 
 
-pub(crate) struct FrameContext<'frame> {
-	pub device: &'frame Device,
+pub(crate) struct FrameContext {
 	pub encoder: CommandEncoder,
 	pub texture: SwapchainTexture
 }
 
-impl<'f> FrameContext<'f> {
+impl FrameContext {
 	pub fn new(
-		device: &'f Device,
 		encoder: CommandEncoder,
 		texture: SwapchainTexture
 	) -> Self {
-		Self { device, encoder, texture }
+		Self { encoder, texture }
 	}
 
 	pub fn finish(self, queue: &Queue) {
