@@ -15,15 +15,19 @@ struct ClientApp<'window>(
 impl From<WindowModule> for ClientApp<'_> {
 	fn from(window: WindowModule) -> Self {
 		let window = window.with_title("Starflow");
-		let renderer = future::block_on(
-			Renderer::new(
-				GpuContextConfig::default()
-					.add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES),
-				window.clone_handle()
-			)
-		);
+		let renderer = create_renderer(&window);
 		Self (window, renderer)
 	}
+}
+
+fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
+	future::block_on(
+		Renderer::new(
+			GpuContextConfig::default()
+				.add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES),
+			window.clone_handle()
+		)
+	)
 }
 
 
