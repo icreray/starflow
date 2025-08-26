@@ -21,12 +21,10 @@ impl From<WindowModule> for ClientApp<'_> {
 }
 
 fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
+	let context_config = GpuContextConfig::default()
+		.add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES);
 	future::block_on(
-		Renderer::new(
-			GpuContextConfig::default()
-				.add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES),
-			window.clone_handle()
-		)
+		Renderer::new(context_config, window.clone_handle())
 	)
 }
 
