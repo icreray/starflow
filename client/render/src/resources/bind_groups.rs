@@ -18,8 +18,8 @@ impl BindGroupLayouts {
 	// TODO: 'Neat' layout creation
 	pub fn add(
 		&mut self,
-		key: &'static str,
 		device: &Device,
+		key: &'static str,
 		descriptor: &BindGroupLayoutDescriptor
 	) -> Option<BindGroupLayoutId> {
 		if self.key_to_id.contains_key(key) {
@@ -52,36 +52,28 @@ impl Index<BindGroupLayoutId> for BindGroupLayouts {
 
 
 pub(crate) mod assets {
-	use wgpu::{
-		BindGroupLayoutDescriptor, BindGroupLayoutEntry, Device,
-		ShaderStages, StorageTextureAccess, TextureFormat
-	};
+	use wgpu::{BindGroupLayoutDescriptor, Device, StorageTextureAccess, TextureFormat};
 
-	use crate::{core::util::texture_storage_2d, resources::BindGroupLayouts};
+	use crate::{core::util::bind_group_layout::binding, resources::BindGroupLayouts};
+
 
 	// TODO: Move this outside renderer
 	pub(crate) fn create_bind_group_layouts(device: &Device) -> BindGroupLayouts {
 		let mut layouts = BindGroupLayouts::default();
-		layouts.add("output_texture", device, &BindGroupLayoutDescriptor {
+		layouts.add(device, "output_texture", &BindGroupLayoutDescriptor {
 			label: Some("output_texture"),
 			entries: &[
-				BindGroupLayoutEntry {
-					binding: 0,
-					visibility: ShaderStages::COMPUTE,
-					ty: texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly),
-					count: None
-				}
+				binding(0)
+					.compute()
+					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly)
 			]
 		});
-		layouts.add("input_texture", device, &BindGroupLayoutDescriptor {
+		layouts.add(device, "input_texture", &BindGroupLayoutDescriptor {
 			label: Some("input_texture"),
 			entries: &[
-				BindGroupLayoutEntry {
-					binding: 0,
-					visibility: ShaderStages::FRAGMENT,
-					ty: texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly),
-					count: None
-				}
+				binding(0)
+					.fragment()
+					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly)
 			]
 		});
 		layouts
