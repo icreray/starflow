@@ -51,11 +51,11 @@ impl AllocatedResources {
 	pub fn new(
 		device: &Device,
 		layouts: &BindGroupLayouts,
-		screen_size: Size<u32>
+		surface_size: Size<u32>
 	) -> Self {
 		let output_texture = device.create_texture(&TextureDescriptor {
 			label: Some("output_texture"),
-			size: screen_size.into(),
+			size: surface_size.into(),
 			mip_level_count: 1,
 			sample_count: 1,
 			dimension: TextureDimension::D2,

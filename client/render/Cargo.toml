@@ -8,9 +8,9 @@ winit = ["dep:winit"]
 
 [dependencies]
 glued = { workspace = true }
-starflow-util = { workspace = true, features = ["winit"] }
+starflow-util = { workspace = true, features = ["winit", "wgpu"] }
 
-wgpu = "25.0.0"
+wgpu =  { workspace = true }
 default = "0.1.2"
 
 winit = { workspace = true, optional = true}
