@@ -1,52 +1,40 @@
-use std::ops::Index;
-use ahash::AHashMap;
+use std::ops::{Deref, Index};
 
 use wgpu::{BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, Device};
+
+use crate::resources::resource_cache::{ResourceCache, ResourceId};
 
 
 #[derive(Default)]
 pub(crate) struct BindGroupLayouts {
-	key_to_id: AHashMap<&'static str, BindGroupLayoutId>,
-	layouts: Vec<BindGroupLayout>
+	inner: ResourceCache<BindGroupLayout>
 }
 
-#[derive(Clone, Copy)]
-pub(crate) struct BindGroupLayoutId(usize);
+pub(crate) type BindGroupLayoutId = ResourceId<BindGroupLayout>;
 
 impl BindGroupLayouts {
-
-	pub fn add(
+	pub fn create(
 		&mut self,
 		device: &Device,
 		key: &'static str,
 		entries: &[BindGroupLayoutEntry]
 	) -> Option<BindGroupLayoutId> {
-		if self.key_to_id.contains_key(key) {
+		if self.inner.contains_key(key) {
 			None
 		}
 		else {
 			let descriptor = BindGroupLayoutDescriptor { label: Some(key), entries };
-			let id = BindGroupLayoutId(self.layouts.len());
-			self.key_to_id.insert(key, id);
-			self.layouts.push(device.create_bind_group_layout(&descriptor));
-			Some(id)
+			let layout = device.create_bind_group_layout(&descriptor);
+			Some(self.inner.add_unchecked(key, layout))
 		}
-	}
-
-	pub fn get(&self, key: &str) -> Option<&BindGroupLayout> {
-		self.get_id(key).map(|id| &self[id])
-	}
-
-	pub fn get_id(&self, key: &str) -> Option<BindGroupLayoutId> {
-		self.key_to_id.get(key).cloned()
 	}
 }
 
-impl Index<BindGroupLayoutId> for BindGroupLayouts {
-	type Output = BindGroupLayout;
+impl Deref for BindGroupLayouts {
+	type Target = ResourceCache<BindGroupLayout>;
 
-	fn index(&self, index: BindGroupLayoutId) -> &Self::Output {
-		&self.layouts[index.0]
+	fn deref(&self) -> &Self::Target {
+		&self.inner
 	}
 }
 
@@ -60,12 +48,12 @@ pub(crate) mod assets {
 	// TODO: Move this outside renderer
 	pub(crate) fn create_bind_group_layouts(device: &Device) -> BindGroupLayouts {
 		let mut layouts = BindGroupLayouts::default();
-		layouts.add(device, "output_texture", &[
+		layouts.create(device, "output_texture", &[
 				binding(0)
 					.compute()
 					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly)
 		]);
-		layouts.add(device, "input_texture", &[
+		layouts.create(device, "input_texture", &[
 				binding(0)
 					.fragment()
 					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly)
