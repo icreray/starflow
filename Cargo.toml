@@ -11,3 +11,4 @@ starflow-util = { path = "shared/util" }
 
 wgpu = "25.0.0"
 winit = "0.30.12"
+ahash = "0.8.12"

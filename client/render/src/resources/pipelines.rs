@@ -48,7 +48,7 @@ mod assets {
 		);
 		let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
 			label: Some("main_pass_layout"),
-			bind_group_layouts: &[&layouts.output_texture],
+			bind_group_layouts: &[layouts.get("output_texture").unwrap()],
 			push_constant_ranges: &[]
 		});
 		device.create_compute_pipeline(&ComputePipelineDescriptor {
@@ -74,7 +74,7 @@ mod assets {
 		);
 		let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
 				label: Some("display_layout"),
-				bind_group_layouts: &[&layouts.input_texture],
+				bind_group_layouts: &[layouts.get("input_texture").unwrap()],
 				push_constant_ranges: &[]
 			}
 		);
