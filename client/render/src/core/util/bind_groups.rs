@@ -18,6 +18,7 @@ pub mod bind_group_layout {
 		BindGroupLayoutEntryBuilder { binding, visibility: ShaderStages::NONE, count: None }
 	}
 
+	#[allow(dead_code)]
 	impl BindGroupLayoutEntryBuilder {
 		pub fn vertex(mut self) -> Self {
 			self.visibility |= ShaderStages::VERTEX;
