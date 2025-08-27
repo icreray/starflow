@@ -17,6 +17,7 @@ impl<R> Default for ResourceCache<R> {
 	}
 }
 
+#[allow(dead_code)]
 impl<R> ResourceCache<R> {
 	pub fn add(&mut self, key: &'static str, resource: R) -> Option<ResourceId<R>> {
 		if self.key_to_id.contains_key(key) {

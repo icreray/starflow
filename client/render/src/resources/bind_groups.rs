@@ -1,4 +1,4 @@
-use std::ops::{Deref, Index};
+use std::ops::Deref;
 
 use wgpu::{BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, Device};
 
