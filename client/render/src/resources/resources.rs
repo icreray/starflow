@@ -6,21 +6,19 @@ use wgpu::{
 };
 
 use starflow_util::Size;
+
 use crate::{
 	core::{util::AsBindGroupEntry, RenderSurface},
 	resources::{assets, BindGroupLayouts, Pipelines}
 };
 
 
-pub(crate) struct RenderResources {
-	#[allow(dead_code)]
-	bind_group_layouts: BindGroupLayouts,
-	pub pipelines: Pipelines,
-	pub allocated: AllocatedResources
+pub(crate) struct RenderAssets {
+	pub bind_group_layouts: BindGroupLayouts,
+	pub pipelines: Pipelines
 }
 
-impl RenderResources {
-	//TODO: Initialize from Assets
+impl RenderAssets {
 	pub fn new(device: &Device, surface: &RenderSurface) -> Self {
 		let bind_group_layouts = assets::create_bind_group_layouts(device);
 		let pipelines = Pipelines::new(
@@ -28,26 +26,21 @@ impl RenderResources {
 			&bind_group_layouts,
 			surface.texture_format()
 		);
-		let allocated = AllocatedResources::new(
-			device, 
-			&bind_group_layouts, 
-			surface.size()
-		);
-		Self { bind_group_layouts, pipelines, allocated }
+		Self { bind_group_layouts, pipelines }
 	}
 }
 
 
 // TODO: Refactoring :D
 #[allow(dead_code)]
-pub(crate) struct AllocatedResources {
+pub(crate) struct RenderResources {
 	output_texture: Texture,
 	output_texture_view: TextureView,
 	pub output_texture_bind_group: BindGroup,
 	pub input_texture_bind_group: BindGroup
 }
 
-impl AllocatedResources {
+impl RenderResources {
 	pub fn new(
 		device: &Device,
 		layouts: &BindGroupLayouts,
