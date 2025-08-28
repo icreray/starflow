@@ -4,7 +4,8 @@ use ahash::AHashMap;
 
 
 pub(crate) struct ResourceCache<R> {
-	key_to_id: AHashMap<&'static str, ResourceId<R>>,
+	// FIXME: Fix unneccessary string allocations
+	key_to_id: AHashMap<String, ResourceId<R>>,
 	resources: Vec<R>
 }
 
@@ -19,7 +20,7 @@ impl<R> Default for ResourceCache<R> {
 
 #[allow(dead_code)]
 impl<R> ResourceCache<R> {
-	pub fn add(&mut self, key: &'static str, resource: R) -> Option<ResourceId<R>> {
+	pub fn add(&mut self, key: &str, resource: R) -> Option<ResourceId<R>> {
 		if self.key_to_id.contains_key(key) {
 			None
 		}
@@ -28,9 +29,10 @@ impl<R> ResourceCache<R> {
 		}
 	}
 
-	pub fn add_unchecked(&mut self, key: &'static str, resource: R) -> ResourceId<R> {
+	pub fn add_unchecked(&mut self, key: &str, resource: R) -> ResourceId<R> {
 		let id = ResourceId(self.resources.len(), PhantomData);
-		self.key_to_id.insert(key, id.clone());
+		// FIXME: Fix unneccessary string allocations
+		self.key_to_id.insert(key.to_string(), id.clone());
 		self.resources.push(resource);
 		id
 	}

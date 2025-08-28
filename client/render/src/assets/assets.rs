@@ -1,9 +1,38 @@
 use wgpu::{Device, StorageTextureAccess, TextureFormat};
 
 use crate::{
-	core::{util::bind_group_layout::binding, RenderSurface}, 
-	assets::{BindGroupLayouts, Pipelines}
+	assets::{descriptors::BindGroupLayout, BindGroupLayouts, Pipelines},
+	core::{util::bind_group_layout::binding, RenderSurface}
 };
+
+
+pub mod descriptors {
+	use wgpu::{BindGroupLayoutEntry, BindGroupLayoutDescriptor};
+
+
+	pub struct BindGroupLayout<'a> {
+		pub key: &'a str,
+		pub entries: &'a [BindGroupLayoutEntry]
+	}
+
+	impl<'a> BindGroupLayout<'a> {
+		pub fn new(
+			key: &'a str,
+			entries: &'a [BindGroupLayoutEntry]
+		) -> Self {
+			Self { key, entries }
+		}
+	}
+
+	impl<'a> From<BindGroupLayout<'a>> for BindGroupLayoutDescriptor<'a> {
+		fn from(value: BindGroupLayout<'a>) -> Self {
+			Self {
+				label: Some(value.key),
+				entries: value.entries
+			}
+		}
+	}
+}
 
 
 pub(crate) struct RenderAssets {
@@ -27,15 +56,15 @@ impl RenderAssets {
 // TODO: Move this outside renderer
 pub(crate) fn create_bind_group_layouts(device: &Device) -> BindGroupLayouts {
 	let mut layouts = BindGroupLayouts::default();
-	layouts.create(device, "output_texture", &[
+	layouts.create(device, BindGroupLayout::new("output_texture", &[
 			binding(0)
 				.compute()
 				.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly)
-	]);
-	layouts.create(device, "input_texture", &[
+	]));
+	layouts.create(device, BindGroupLayout::new("input_texture", &[
 			binding(0)
 				.fragment()
 				.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly)
-	]);
+	]));
 	layouts
 }
