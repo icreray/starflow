@@ -2,7 +2,11 @@ use default::default;
 
 use wgpu::{Color, ComputePassDescriptor, RenderPassDescriptor};
 
-use crate::{core::FrameContext, resources::{RenderAssets, RenderResources}};
+use crate::{
+	core::FrameContext, 
+	assets::RenderAssets,
+	resources::RenderResources
+};
 
 
 pub(crate) struct RenderGraph;

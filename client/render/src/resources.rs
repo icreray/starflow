@@ -8,27 +8,9 @@ use wgpu::{
 use starflow_util::Size;
 
 use crate::{
-	core::{util::AsBindGroupEntry, RenderSurface},
-	resources::{assets, BindGroupLayouts, Pipelines}
+	core::util::AsBindGroupEntry,
+	assets::BindGroupLayouts
 };
-
-
-pub(crate) struct RenderAssets {
-	pub bind_group_layouts: BindGroupLayouts,
-	pub pipelines: Pipelines
-}
-
-impl RenderAssets {
-	pub fn new(device: &Device, surface: &RenderSurface) -> Self {
-		let bind_group_layouts = assets::create_bind_group_layouts(device);
-		let pipelines = Pipelines::new(
-			device,
-			&bind_group_layouts,
-			surface.texture_format()
-		);
-		Self { bind_group_layouts, pipelines }
-	}
-}
 
 
 // TODO: Refactoring :D

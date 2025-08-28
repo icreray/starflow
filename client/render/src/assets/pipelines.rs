@@ -1,6 +1,6 @@
 use wgpu::{ComputePipeline, Device, RenderPipeline, TextureFormat};
 
-use crate::resources::BindGroupLayouts;
+use crate::assets::BindGroupLayouts;
 
 
 /* TODO:
@@ -39,7 +39,7 @@ mod assets {
 		RenderPipeline, RenderPipelineDescriptor, TextureFormat, VertexState
 	};
 
-	use crate::resources::BindGroupLayouts;
+	use crate::assets::BindGroupLayouts;
 
 
 	pub(super) fn create_main_pass(device: &Device, layouts: &BindGroupLayouts) -> ComputePipeline {

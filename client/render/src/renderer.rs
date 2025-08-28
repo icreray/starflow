@@ -3,7 +3,8 @@ use glued::module_impl;
 use crate::{
 	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
-	resources::{RenderAssets, RenderResources},
+	assets::RenderAssets,
+	resources::RenderResources,
 	GpuContextConfig
 };
 
