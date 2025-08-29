@@ -8,5 +8,8 @@ winit = ["dep:winit"]
 wgpu = ["dep:wgpu"]
 
 [dependencies]
+ahash = { workspace = true }
+default = "0.1.2"
+
 winit = { workspace = true, optional = true }
 wgpu = { workspace = true, optional = true }

@@ -5,4 +5,3 @@ pub(crate) use pipelines::*;
 mod assets;
 mod bind_groups;
 mod pipelines;
-mod resource_cache;

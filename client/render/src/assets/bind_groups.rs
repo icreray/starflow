@@ -1,38 +1,34 @@
 use std::ops::Deref;
 
+use starflow_util::{Handle, Registry};
 use wgpu::{BindGroupLayout, Device};
 
-use crate::assets::{descriptors, resource_cache::{ResourceCache, ResourceId}};
+use crate::assets::descriptors;
 
 
 #[derive(Default)]
 pub(crate) struct BindGroupLayouts {
-	inner: ResourceCache<BindGroupLayout>
+	registry: Registry<Box<str>, BindGroupLayout>
 }
 
-pub(crate) type BindGroupLayoutId = ResourceId<BindGroupLayout>;
+pub(crate) type BindGroupLayoutId = Handle<BindGroupLayout>;
 
 impl BindGroupLayouts {
 	pub fn create(
 		&mut self,
 		device: &Device,
 		layout: descriptors::BindGroupLayout
-	) -> Option<BindGroupLayoutId> {
-		if self.inner.contains_key(layout.key) {
-			None
-		}
-		else {
-			let key = layout.key;
-			let layout = device.create_bind_group_layout(&layout.into());
-			Some(self.inner.add_unchecked(key, layout))
-		}
+	) -> BindGroupLayoutId {
+		let key = layout.key;
+		let layout = device.create_bind_group_layout(&layout.into());
+		self.registry.set(key.into(), layout)
 	}
 }
 
 impl Deref for BindGroupLayouts {
-	type Target = ResourceCache<BindGroupLayout>;
+	type Target = Registry<Box<str>, BindGroupLayout>;
 
 	fn deref(&self) -> &Self::Target {
-		&self.inner
+		&self.registry
 	}
 }
