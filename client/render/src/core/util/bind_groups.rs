@@ -20,18 +20,9 @@ pub mod bind_group_layout {
 
 	#[allow(dead_code)]
 	impl BindGroupLayoutEntryBuilder {
-		pub fn vertex(mut self) -> Self {
-			self.visibility |= ShaderStages::VERTEX;
-			self
-		}
 
-		pub fn fragment(mut self) -> Self {
-			self.visibility |= ShaderStages::FRAGMENT;
-			self
-		}
-
-		pub fn compute(mut self) -> Self {
-			self.visibility |= ShaderStages::COMPUTE;
+		pub fn visibility(mut self, visibility: ShaderStages) -> Self {
+			self.visibility = visibility;
 			self
 		}
 

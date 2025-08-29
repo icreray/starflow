@@ -1,4 +1,4 @@
-use wgpu::{Device, StorageTextureAccess, TextureFormat};
+use wgpu::{Device, ShaderStages, StorageTextureAccess, TextureFormat};
 
 use crate::{
 	assets::{descriptors::BindGroupLayout, BindGroupLayouts, Pipelines},
@@ -58,12 +58,12 @@ pub(crate) fn create_bind_group_layouts(device: &Device) -> BindGroupLayouts {
 	let mut layouts = BindGroupLayouts::default();
 	layouts.create(device, BindGroupLayout::new("output_texture", &[
 			binding(0)
-				.compute()
+				.visibility(ShaderStages::COMPUTE)
 				.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly)
 	]));
 	layouts.create(device, BindGroupLayout::new("input_texture", &[
 			binding(0)
-				.fragment()
+				.visibility(ShaderStages::FRAGMENT)
 				.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly)
 	]));
 	layouts
