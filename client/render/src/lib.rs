@@ -1,7 +1,7 @@
 pub use config::*;
 pub use renderer::*;
 
-mod assets;
+pub mod assets;
 mod core;
 mod config;
 mod graph;

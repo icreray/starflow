@@ -1,7 +1,3 @@
-pub(crate) use assets::*;
-pub(crate) use bind_groups::*;
-pub(crate) use pipelines::*;
+pub use assets::*;
 
 mod assets;
-mod bind_groups;
-mod pipelines;

@@ -1,27 +1,43 @@
 use default::default;
 
-use wgpu::{Color, ComputePassDescriptor, RenderPassDescriptor};
+use wgpu::{Color, ComputePassDescriptor, ComputePipeline, RenderPassDescriptor, RenderPipeline};
+
+use starflow_util::Handle;
 
 use crate::{
-	core::FrameContext, 
 	assets::RenderAssets,
+	core::FrameContext,
 	resources::RenderResources
 };
 
 
-pub(crate) struct RenderGraph;
+pub(crate) struct RenderGraph {
+	main_pass: Handle<ComputePipeline>,
+	blit: Handle<RenderPipeline>
+}
+
+impl RenderGraph {
+	pub(crate) fn new(assets: &RenderAssets) -> Self {
+		Self {
+			main_pass: assets.compute_pipelines.get_handle("main_pass").unwrap(),
+			blit: assets.render_pipelines.get_handle("blit").unwrap()
+		}
+	}
+}
 
 impl RenderGraph {
 	pub fn run(
+		&self,
 		frame: &mut FrameContext,
 		assets: &RenderAssets,
 		resources: &RenderResources
 	) {
-		Self::run_main_pass(frame, assets, resources);
-		Self::run_blit_pass(frame, assets, resources);
+		self.run_main_pass(frame, assets, resources);
+		self.run_blit_pass(frame, assets, resources);
 	}
 
 	fn run_main_pass(
+		&self,
 		frame: &mut FrameContext,
 		assets: &RenderAssets,
 		resources: &RenderResources
@@ -30,7 +46,7 @@ impl RenderGraph {
 			label: Some("main_pass"),
 			timestamp_writes: None,
 		});
-		pass.set_pipeline(&assets.pipelines.main_pass);
+		pass.set_pipeline(&assets.compute_pipelines[&self.main_pass]);
 		pass.set_bind_group(0, &resources.output_texture_bind_group, &[]);
 		pass.dispatch_workgroups(
 			(frame.texture.width() + 15) >> 4,
@@ -40,6 +56,7 @@ impl RenderGraph {
 	}
 
 	fn run_blit_pass(
+		&self,
 		frame: &mut FrameContext,
 		assets: &RenderAssets,
 		resources: &RenderResources
@@ -50,7 +67,7 @@ impl RenderGraph {
 			color_attachments: &[Some(attachment)],
 			..default()
 		});
-		pass.set_pipeline(&assets.pipelines.blit);
+		pass.set_pipeline(&assets.render_pipelines[&self.blit]);
 		pass.set_bind_group(0, &resources.input_texture_bind_group, &[]);
 		pass.draw(0..3, 0..1);
 	}

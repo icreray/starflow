@@ -1,9 +1,9 @@
 use glued::module_impl;
 
 use crate::{
+	assets::{create_render_assets, HasRegistry, RenderAssets},
 	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
-	assets::RenderAssets,
 	resources::RenderResources,
 	GpuContextConfig
 };
@@ -13,7 +13,8 @@ pub struct Renderer<'window> {
 	context: GpuContext,
 	surface: RenderSurface<'window>,
 	assets: RenderAssets,
-	resources: RenderResources
+	resources: RenderResources,
+	graph: RenderGraph
 }
 
 impl<'w> Renderer<'w> {
@@ -28,20 +29,20 @@ impl<'w> Renderer<'w> {
 			target.target, target.size, &context
 		).expect("Failed to create surface");
 
-		let assets = RenderAssets::new(
-			&context.device, &surface
-		);
+		let assets = create_render_assets(&surface, &context.device);
 		let resources = RenderResources::new(
 			&context.device,
-			&assets.bind_group_layouts,
+			&assets.get(),
 			surface.size()
 		);
+		let graph = RenderGraph::new(&assets);
 
 		Self {
 			context,
 			surface,
 			assets,
-			resources
+			resources,
+			graph
 		}
 	}
 
@@ -54,7 +55,7 @@ impl<'w> Renderer<'w> {
 			encoder,
 			swapchain_texture
 		);
-		RenderGraph::run(
+		self.graph.run(
 			&mut frame,
 			&self.assets,
 			&self.resources
