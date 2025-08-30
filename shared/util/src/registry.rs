@@ -60,6 +60,13 @@ impl<K, V> Index<Handle<V>> for Registry<K, V> {
 	}
 }
 
+impl<K, V> Index<&Handle<V>> for Registry<K, V> {
+	type Output = V;
+
+	fn index(&self, index: &Handle<V>) -> &Self::Output {
+		&self.values[index.0]
+	}
+}
 
 #[derive(Copy)]
 pub struct Handle<V>(usize, PhantomData<V>);
