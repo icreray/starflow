@@ -4,10 +4,10 @@ pub use wgpu::{PushConstantRange, ShaderSource, PrimitiveState, DepthStencilStat
 use wgpu::{
 	BindGroupLayoutDescriptor, BindGroupLayoutEntry, BlendState, ColorTargetState, ColorWrites,
 	ComputePipelineDescriptor, FragmentState, PipelineLayoutDescriptor, RenderPipelineDescriptor,
-		ShaderModuleDescriptor, VertexState
+	ShaderModuleDescriptor, VertexState
 };
 
-use super::{RenderAssetDesc, RenderAssetsCreation};
+use super::{RenderAssetDesc, RenderAssetsCreation, RenderAssetError};
 
 
 pub struct BindGroupLayout<'a> {
@@ -24,13 +24,13 @@ impl<'a> BindGroupLayout<'a> {
 	}
 }
 
-impl<'a> RenderAssetDesc for BindGroupLayout<'a> {
+impl<'a> RenderAssetDesc<'a> for BindGroupLayout<'a> {
 	type Asset = wgpu::BindGroupLayout;
 
 	fn key(&self) -> &str { &self.key }
 
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
-		Some(ctx.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>> {
+		Ok(ctx.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
 			label: Some(self.key),
 			entries: self.entries
 		}))
@@ -44,16 +44,19 @@ pub struct PipelineLayout<'a> {
 	pub push_constant_ranges: &'a [PushConstantRange]
 }
 
-impl<'a> RenderAssetDesc for PipelineLayout<'a> {
+impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
 	type Asset = wgpu::PipelineLayout;
 
 	fn key(&self) -> &str { &self.key }
 
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>> {
 		let layouts = self.bind_group_layouts.iter()
-			.map(|&layout| ctx.assets.get_asset(layout))
-			.collect::<Option<Vec<_>>>()?;
-		Some(ctx.device.create_pipeline_layout(&PipelineLayoutDescriptor {
+			.map(|&layout| ctx.assets
+				.get_asset(layout)
+				.ok_or(RenderAssetError::MissingDependency(layout))
+			)
+			.collect::<Result<Vec<_>, RenderAssetError<'a>>>()?;
+		Ok(ctx.device.create_pipeline_layout(&PipelineLayoutDescriptor {
 			label: Some(self.key),
 			bind_group_layouts: &layouts,
 			push_constant_ranges: self.push_constant_ranges
@@ -73,13 +76,13 @@ impl<'a> ShaderModule<'a> {
 	}
 }
 
-impl<'a> RenderAssetDesc for ShaderModule<'a> {
+impl<'a> RenderAssetDesc<'a> for ShaderModule<'a> {
 	type Asset = wgpu::ShaderModule;
 
 	fn key(&self) -> &str { &self.key }
 
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
-		Some(ctx.device.create_shader_module(ShaderModuleDescriptor {
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>> {
+		Ok(ctx.device.create_shader_module(ShaderModuleDescriptor {
 			label: Some(self.key),
 			source: self.source
 		}))
@@ -93,19 +96,25 @@ pub struct ComputePipeline<'a> {
 	pub module: &'a str
 }
 
-impl<'a> RenderAssetDesc for ComputePipeline<'a> {
+impl<'a> RenderAssetDesc<'a> for ComputePipeline<'a> {
 	type Asset = wgpu::ComputePipeline;
 
 	fn key(&self) -> &str { &self.key }
 
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>> {
 		let layout = match self.layout {
-			Some(layout) => Some(ctx.assets.get_asset(layout)?),
+			Some(layout) => Some(
+				ctx.assets
+					.get_asset(layout)
+					.ok_or(RenderAssetError::MissingDependency(layout))?
+			),
 			None => None
 		};
-		let module = ctx.assets.get_asset(self.module)?;
+		let module = ctx.assets
+			.get_asset(self.module)
+			.ok_or(RenderAssetError::MissingDependency(self.module))?;
 
-		Some(ctx.device.create_compute_pipeline(&ComputePipelineDescriptor {
+		Ok(ctx.device.create_compute_pipeline(&ComputePipelineDescriptor {
 			label: Some(self.key),
 			layout,
 			module,
@@ -129,20 +138,29 @@ pub struct RenderPipeline<'a> {
 	pub multisample: MultisampleState
 }
 
-impl<'a> RenderAssetDesc for RenderPipeline<'a> {
+impl<'a> RenderAssetDesc<'a> for RenderPipeline<'a> {
 	type Asset = wgpu::RenderPipeline;
 
 	fn key(&self) -> &str { &self.key }
 
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>> {
 		let layout = match self.layout {
-			Some(layout) => Some(ctx.assets.get_asset(layout)?),
+			Some(layout) => Some(
+				ctx.assets
+					.get_asset(layout)
+					.ok_or(RenderAssetError::MissingDependency(layout))?
+			),
 			None => None
 		};
-		let vertex = ctx.assets.get_asset(self.vertex)?;
+		let vertex = ctx.assets
+			.get_asset(self.vertex)
+			.ok_or(RenderAssetError::MissingDependency(self.vertex))?;
+
 		let fragment = match self.fragment {
 			Some(fragment) => {
-				let fragment = ctx.assets.get_asset(fragment)?;
+				let fragment = ctx.assets
+					.get_asset(fragment)
+					.ok_or(RenderAssetError::MissingDependency(fragment))?;
 				Some(FragmentState {
 					module: fragment,
 					entry_point: None,
@@ -156,7 +174,7 @@ impl<'a> RenderAssetDesc for RenderPipeline<'a> {
 			}
 			None => None
 		};
-		Some(ctx.device.create_render_pipeline(&RenderPipelineDescriptor {
+		Ok(ctx.device.create_render_pipeline(&RenderPipelineDescriptor {
 			label: Some(self.key),
 			layout,
 			vertex: VertexState {

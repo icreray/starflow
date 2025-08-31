@@ -1,5 +1,5 @@
+use core::{error, fmt};
 use std::ops::Index;
-
 use default::default;
 
 use wgpu::Device;
@@ -25,23 +25,39 @@ impl<'r> RenderAssetsCreation<'r> {
 	}
 
 	#[allow(private_bounds)]
-	pub fn create<D>(&mut self, descriptor: D) -> Option<Handle<D::Asset>>
+	pub fn create<'a, D>(&mut self, descriptor: D) -> Result<Handle<D::Asset>, RenderAssetError<'a>>
 	where 
-		D: RenderAssetDesc,
+		D: RenderAssetDesc<'a>,
 		RenderAssets: HasRegistry<D::Asset>
 	{
 		let key = descriptor.key().into();
 		let asset = descriptor.create(self)?;
-		Some(self.assets.get_mut().set(key, asset))
+		Ok(self.assets.get_registry_mut().set(key, asset))
 	}
 }
 
 
-pub trait RenderAssetDesc {
+#[derive(Debug)]
+pub enum RenderAssetError<'a> {
+	MissingDependency(&'a str)
+}
+
+impl<'a> fmt::Display for RenderAssetError<'a> {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::MissingDependency(dep) => {write!(f, "Missing dependency {}", dep)}
+		}
+	}
+}
+
+impl<'a> error::Error for RenderAssetError<'a> {}
+
+
+pub trait RenderAssetDesc<'a> {
 	type Asset: sealed::RenderAsset;
 
 	fn key(&self) -> &str;
-	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset>;
+	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>>;
 }
 
 mod sealed {
@@ -76,7 +92,7 @@ impl RenderAssets {
 		R: sealed::RenderAsset,
 		Self: HasRegistry<R>
 	{
-		self.get().get_handle(key)
+		self.get_registry().get_handle(key)
 	}
 
 	#[allow(private_bounds)]
@@ -85,7 +101,7 @@ impl RenderAssets {
 		R: sealed::RenderAsset,
 		Self: HasRegistry<R>
 	{
-		self.get().get(key)
+		self.get_registry().get(key)
 	}
 }
 
@@ -97,25 +113,25 @@ where
 	type Output = R;
 
 	fn index(&self, index: &Handle<R>) -> &Self::Output {
-		&self.get()[index]
+		&self.get_registry()[index]
 	}
 }
 
 
 trait HasRegistry<A>
 where A: sealed::RenderAsset {
-	fn get(&self) -> &Registry<Box<str>, A>;
-	fn get_mut(&mut self) -> &mut Registry<Box<str>, A>;
+	fn get_registry(&self) -> &Registry<Box<str>, A>;
+	fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, A>;
 }
 
 macro_rules! impl_has_registry {
 	($render_assets:ty, $asset_ty:ty, $field:ident) => {
 		impl HasRegistry<$asset_ty> for $render_assets {
-			fn get(&self) -> &Registry<Box<str>, $asset_ty> {
+			fn get_registry(&self) -> &Registry<Box<str>, $asset_ty> {
 				&self.$field
 			}
 
-			fn get_mut(&mut self) -> &mut Registry<Box<str>, $asset_ty> {
+			fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, $asset_ty> {
 				&mut self.$field
 			}
 		}
@@ -157,7 +173,7 @@ pub(crate) fn create_render_assets(surface: &RenderSurface, device: &Device) -> 
 		}).unwrap();
 		ctx.create(ShaderModule::new("main_pass",
 			ShaderSource::Wgsl(include_str!("../../../../assets/shaders/main_pass.wgsl").into())
-		));
+		)).unwrap();
 		ctx.create(ComputePipeline {
 			key: "main_pass",
 			layout: Some("main_pass"),
