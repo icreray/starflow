@@ -1,7 +1,7 @@
 use glued::module_impl;
 
 use crate::{
-	assets::{create_render_assets, HasRegistry, RenderAssets},
+	assets::{create_render_assets, RenderAssets},
 	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
 	resources::RenderResources,
@@ -32,7 +32,7 @@ impl<'w> Renderer<'w> {
 		let assets = create_render_assets(&surface, &context.device);
 		let resources = RenderResources::new(
 			&context.device,
-			&assets.get(),
+			&assets,
 			surface.size()
 		);
 		let graph = RenderGraph::new(&assets);

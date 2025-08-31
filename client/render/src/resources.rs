@@ -8,8 +8,8 @@ use wgpu::{
 use starflow_util::Size;
 
 use crate::{
-	core::util::AsBindGroupEntry,
-	assets::BindGroupLayouts
+	assets::RenderAssets,
+	core::util::AsBindGroupEntry
 };
 
 
@@ -25,7 +25,7 @@ pub(crate) struct RenderResources {
 impl RenderResources {
 	pub fn new(
 		device: &Device,
-		layouts: &BindGroupLayouts,
+		assets: &RenderAssets,
 		surface_size: Size<u32>
 	) -> Self {
 		let output_texture = device.create_texture(&TextureDescriptor {
@@ -41,14 +41,14 @@ impl RenderResources {
 		let output_texture_view = output_texture.create_view(&default());
 		let output_texture_bind_group = device.create_bind_group(&BindGroupDescriptor {
 			label: Some("output_texture_bind_group"),
-			layout: &layouts.get("output_texture").unwrap(),
+			layout: &assets.get_asset("output_texture").unwrap(),
 			entries: &[
 				output_texture_view.as_bind_group_entry(0)
 			]
 		});
 		let input_texture_bind_group = device.create_bind_group(&BindGroupDescriptor {
 			label: Some("input_texture_bind_group"),
-			layout: &layouts.get("input_texture").unwrap(),
+			layout: &assets.get_asset("input_texture").unwrap(),
 			entries: &[
 				output_texture_view.as_bind_group_entry(0)
 			]

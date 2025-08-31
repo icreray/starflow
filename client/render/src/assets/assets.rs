@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use default::default;
 
 use wgpu::Device;
@@ -60,14 +62,47 @@ pub(crate) type ComputePipelines = Registry<Box<str>, wgpu::ComputePipeline>;
 
 #[derive(Default)]
 pub(crate) struct RenderAssets {
-	pub(super) bind_group_layouts: BindGroupLayouts,
-	pub(super) pipeline_layouts: PipelineLayouts,
-	pub(super) shader_modules: ShaderModules,
-	pub(crate) render_pipelines: RenderPipelines,
-	pub(crate) compute_pipelines: ComputePipelines
+	bind_group_layouts: BindGroupLayouts,
+	pipeline_layouts: PipelineLayouts,
+	shader_modules: ShaderModules,
+	render_pipelines: RenderPipelines,
+	compute_pipelines: ComputePipelines
 }
 
-pub(crate) trait HasRegistry<A>
+impl RenderAssets {
+	#[allow(private_bounds)]
+	pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
+	where
+		R: sealed::RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get().get_handle(key)
+	}
+
+	#[allow(private_bounds)]
+	pub fn get_asset<R>(&self, key: &str) -> Option<&R>
+	where
+		R: sealed::RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get().get(key)
+	}
+}
+
+impl<R> Index<&Handle<R>> for RenderAssets
+where
+	R: sealed::RenderAsset,
+	RenderAssets: HasRegistry<R>
+{
+	type Output = R;
+
+	fn index(&self, index: &Handle<R>) -> &Self::Output {
+		&self.get()[index]
+	}
+}
+
+
+trait HasRegistry<A>
 where A: sealed::RenderAsset {
 	fn get(&self) -> &Registry<Box<str>, A>;
 	fn get_mut(&mut self) -> &mut Registry<Box<str>, A>;

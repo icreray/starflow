@@ -51,7 +51,7 @@ impl<'a> RenderAssetDesc for PipelineLayout<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
 		let layouts = self.bind_group_layouts.iter()
-			.map(|&layout| ctx.assets.bind_group_layouts.get(layout))
+			.map(|&layout| ctx.assets.get_asset(layout))
 			.collect::<Option<Vec<_>>>()?;
 		Some(ctx.device.create_pipeline_layout(&PipelineLayoutDescriptor {
 			label: Some(self.key),
@@ -100,10 +100,10 @@ impl<'a> RenderAssetDesc for ComputePipeline<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
 		let layout = match self.layout {
-			Some(layout) => Some(ctx.assets.pipeline_layouts.get(layout)?),
+			Some(layout) => Some(ctx.assets.get_asset(layout)?),
 			None => None
 		};
-		let module = ctx.assets.shader_modules.get(self.module)?;
+		let module = ctx.assets.get_asset(self.module)?;
 
 		Some(ctx.device.create_compute_pipeline(&ComputePipelineDescriptor {
 			label: Some(self.key),
@@ -136,13 +136,13 @@ impl<'a> RenderAssetDesc for RenderPipeline<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> Option<Self::Asset> {
 		let layout = match self.layout {
-			Some(layout) => Some(ctx.assets.pipeline_layouts.get(layout)?),
+			Some(layout) => Some(ctx.assets.get_asset(layout)?),
 			None => None
 		};
-		let vertex = ctx.assets.shader_modules.get(self.vertex)?;
+		let vertex = ctx.assets.get_asset(self.vertex)?;
 		let fragment = match self.fragment {
 			Some(fragment) => {
-				let fragment = ctx.assets.shader_modules.get(fragment)?;
+				let fragment = ctx.assets.get_asset(fragment)?;
 				Some(FragmentState {
 					module: fragment,
 					entry_point: None,

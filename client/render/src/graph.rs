@@ -19,8 +19,8 @@ pub(crate) struct RenderGraph {
 impl RenderGraph {
 	pub(crate) fn new(assets: &RenderAssets) -> Self {
 		Self {
-			main_pass: assets.compute_pipelines.get_handle("main_pass").unwrap(),
-			blit: assets.render_pipelines.get_handle("blit").unwrap()
+			main_pass: assets.get_handle("main_pass").unwrap(),
+			blit: assets.get_handle("blit").unwrap()
 		}
 	}
 }
@@ -46,7 +46,7 @@ impl RenderGraph {
 			label: Some("main_pass"),
 			timestamp_writes: None,
 		});
-		pass.set_pipeline(&assets.compute_pipelines[&self.main_pass]);
+		pass.set_pipeline(&assets[&self.main_pass]);
 		pass.set_bind_group(0, &resources.output_texture_bind_group, &[]);
 		pass.dispatch_workgroups(
 			(frame.texture.width() + 15) >> 4,
@@ -67,7 +67,7 @@ impl RenderGraph {
 			color_attachments: &[Some(attachment)],
 			..default()
 		});
-		pass.set_pipeline(&assets.render_pipelines[&self.blit]);
+		pass.set_pipeline(&assets[&self.blit]);
 		pass.set_bind_group(0, &resources.input_texture_bind_group, &[]);
 		pass.draw(0..3, 0..1);
 	}
