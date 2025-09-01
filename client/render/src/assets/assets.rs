@@ -25,24 +25,40 @@ impl<'r> RenderAssetsCreation<'r> {
 	}
 
 	#[allow(private_bounds)]
-	pub fn create<'a, D>(&mut self, descriptor: D) -> Result<Handle<D::Asset>, RenderAssetError<'a>>
+	pub fn create<'a, D>(&mut self, descriptor: D) -> AssetResult<'a, Handle<D::Asset>>
 	where 
 		D: RenderAssetDesc<'a>,
 		RenderAssets: HasRegistry<D::Asset>
 	{
 		let key = descriptor.key().into();
 		let asset = descriptor.create(self)?;
-		Ok(self.assets.get_registry_mut().set(key, asset))
+		Ok(self.assets
+			.get_registry_mut()
+			.set(key, asset)
+		)
+	}
+
+	#[allow(private_bounds)]
+	pub(super) fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
+	where
+		R: sealed::RenderAsset,
+		RenderAssets: HasRegistry<R>
+	{
+		self.assets
+			.get_asset(key)
+			.ok_or(AssetError::MissingDependency(key))
 	}
 }
 
 
+pub type AssetResult<'a, R> = Result<R, AssetError<'a>>;
+
 #[derive(Debug)]
-pub enum RenderAssetError<'a> {
+pub enum AssetError<'a> {
 	MissingDependency(&'a str)
 }
 
-impl<'a> fmt::Display for RenderAssetError<'a> {
+impl<'a> fmt::Display for AssetError<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Self::MissingDependency(dep) => {write!(f, "Missing dependency {}", dep)}
@@ -50,14 +66,14 @@ impl<'a> fmt::Display for RenderAssetError<'a> {
 	}
 }
 
-impl<'a> error::Error for RenderAssetError<'a> {}
+impl<'a> error::Error for AssetError<'a> {}
 
 
 pub trait RenderAssetDesc<'a> {
 	type Asset: sealed::RenderAsset;
 
 	fn key(&self) -> &str;
-	fn create(self, ctx: &RenderAssetsCreation) -> Result<Self::Asset, RenderAssetError<'a>>;
+	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
 }
 
 mod sealed {
