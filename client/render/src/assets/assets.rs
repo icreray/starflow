@@ -164,7 +164,7 @@ impl_has_registry!(RenderAssets, wgpu::ComputePipeline, compute_pipelines);
 // TODO: Move this outside renderer with error handling
 pub(crate) fn create_render_assets(surface: &RenderSurface, device: &Device) -> RenderAssets {
 	use wgpu::{ShaderStages, TextureFormat, StorageTextureAccess};
-	use crate::core::util::bind_group_layout::binding;
+	use crate::assets::util::binding;
 	use super::desc::*;
 
 	let mut assets = RenderAssets::default();
