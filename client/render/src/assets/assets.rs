@@ -36,17 +36,6 @@ impl<'r> RenderAssetsCreation<'r> {
 			.set(key, asset)
 		)
 	}
-
-	#[allow(private_bounds)]
-	pub(super) fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
-	where
-		R: sealed::RenderAsset,
-		RenderAssets: HasRegistry<R>
-	{
-		self.assets
-			.get_asset(key)
-			.ok_or(AssetError::MissingDependency(key))
-	}
 }
 
 
@@ -117,6 +106,26 @@ impl RenderAssets {
 		Self: HasRegistry<R>
 	{
 		self.get_registry().get(key)
+	}
+
+	#[allow(private_bounds)]
+	pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
+	where
+		R: sealed::RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get_handle(key)
+			.ok_or(AssetError::MissingDependency(key))
+	}
+
+	#[allow(private_bounds)]
+	pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
+	where
+		R: sealed::RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get_asset(key)
+			.ok_or(AssetError::MissingDependency(key))
 	}
 }
 
