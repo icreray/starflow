@@ -1,7 +1,9 @@
+use default::default;
+
 use glued::module_impl;
 
 use crate::{
-	assets::{create_render_assets, RenderAssets},
+	assets::{RenderAssets, RenderAssetsCreation},
 	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
 	graph::RenderGraph,
 	resources::RenderResources,
@@ -29,7 +31,7 @@ impl<'w> Renderer<'w> {
 			target.target, target.size, &context
 		).expect("Failed to create surface");
 
-		let assets = create_render_assets(&surface, &context.device);
+		let assets = RenderAssets::default();
 		let resources = RenderResources::new(
 			&context.device,
 			&assets,
@@ -44,6 +46,16 @@ impl<'w> Renderer<'w> {
 			resources,
 			graph
 		}
+	}
+
+	pub fn create_assets<F>(&mut self, f: F)
+	where F: FnOnce(&mut RenderAssetsCreation) {
+		let mut ctx = RenderAssetsCreation::new(
+			&mut self.assets,
+			&self.surface,
+			&self.context.device
+		);
+		f(&mut ctx);
 	}
 
 	fn draw_frame(&self) {

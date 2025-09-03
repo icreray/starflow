@@ -1,8 +1,10 @@
-use futures_lite::future;
+mod render;
 
 use glued::{AppRunner, ModularApp};
-use starflow_render::{GpuContextConfig, Renderer, Features};
+use starflow_render::Renderer;
 use starflow_window::{WindowModule, WinitRunner};
+
+use crate::render::create_renderer;
 
 
 #[derive(ModularApp)]
@@ -18,14 +20,6 @@ impl From<WindowModule> for ClientApp<'_> {
 		let renderer = create_renderer(&window);
 		Self (window, renderer)
 	}
-}
-
-fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
-	let context_config = GpuContextConfig::default()
-		.add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES);
-	future::block_on(
-		Renderer::new(context_config, window.clone_handle())
-	)
 }
 
 
