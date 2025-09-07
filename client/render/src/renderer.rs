@@ -1,11 +1,9 @@
-use default::default;
-
 use glued::module_impl;
 
 use crate::{
 	assets::{RenderAssets, RenderAssetsCreation},
 	core::{util::SizedSurfaceTarget, FrameContext, GpuContext, RenderSurface},
-	graph::RenderGraph,
+	graph::{BlitPass, MainPass, RenderGraph, RenderGraphCreation},
 	resources::RenderResources,
 	GpuContextConfig
 };
@@ -37,7 +35,9 @@ impl<'w> Renderer<'w> {
 			&assets,
 			surface.size()
 		);
-		let graph = RenderGraph::new(&assets);
+		let mut graph = RenderGraph::default();
+		graph.add_node(MainPass::try_from(&assets).unwrap());
+		graph.add_node(BlitPass::try_from(&assets).unwrap());
 
 		Self {
 			context,
@@ -54,6 +54,15 @@ impl<'w> Renderer<'w> {
 			&mut self.assets,
 			&self.surface,
 			&self.context.device
+		);
+		f(&mut ctx);
+	}
+
+	pub fn set_graph<F>(&mut self, f: F)
+	where F: FnOnce(&mut RenderGraphCreation) {
+		let mut ctx = RenderGraphCreation::new(
+			&mut self.graph,
+			&self.assets
 		);
 		f(&mut ctx);
 	}

@@ -5,24 +5,15 @@ use wgpu::{Color, ComputePassDescriptor, ComputePipeline, RenderPassDescriptor, 
 use starflow_util::Handle;
 
 use crate::{
-	assets::RenderAssets,
+	assets::{AssetError, AssetResult, RenderAssets},
 	core::FrameContext,
 	resources::RenderResources
 };
 
 
+#[derive(Default)]
 pub(crate) struct RenderGraph {
-	main_pass: Handle<ComputePipeline>,
-	blit: Handle<RenderPipeline>
-}
-
-impl RenderGraph {
-	pub(crate) fn new(assets: &RenderAssets) -> Self {
-		Self {
-			main_pass: assets.get_handle("main_pass").unwrap(),
-			blit: assets.get_handle("blit").unwrap()
-		}
-	}
+	nodes: Vec<Box<dyn RenderNode>>
 }
 
 impl RenderGraph {
@@ -32,11 +23,69 @@ impl RenderGraph {
 		assets: &RenderAssets,
 		resources: &RenderResources
 	) {
-		self.run_main_pass(frame, assets, resources);
-		self.run_blit_pass(frame, assets, resources);
+		self.nodes
+			.iter()
+			.for_each(|node| node.run(frame, assets, resources));
 	}
 
-	fn run_main_pass(
+	pub fn add_node<R: RenderNode>(&mut self, node: R)
+	where R: 'static
+	{
+		self.nodes.push(Box::new(node))
+	}
+}
+
+
+#[allow(private_interfaces)]
+pub trait RenderNode {
+	fn run(
+		&self,
+		frame: &mut FrameContext,
+		assets: &RenderAssets,
+		resources: &RenderResources
+	);
+}
+
+
+pub struct RenderGraphCreation<'renderer> {
+	graph: &'renderer mut RenderGraph,
+	assets: &'renderer RenderAssets
+}
+
+impl<'r> RenderGraphCreation<'r> {
+	pub(crate) fn new(
+		graph: &'r mut RenderGraph,
+		assets: &'r RenderAssets
+	) -> Self {
+		Self { graph, assets }
+	}
+
+	#[allow(private_bounds)]
+	pub fn add_node<R: RenderNode>(&mut self) -> AssetResult<'r, ()>
+	where R: TryFrom<&'r RenderAssets, Error = AssetError<'r>> + 'static
+	{
+		let node: R = self.assets.try_into()?;
+		self.graph.add_node(node);
+		Ok(())
+	}
+}
+
+
+pub struct MainPass {
+	main_pass: Handle<ComputePipeline>
+}
+
+impl<'a> TryFrom<&'a RenderAssets> for MainPass {
+	type Error = AssetError<'a>;
+	
+	fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
+		let main_pass = assets.get_dependency_handle("main_pass")?;
+		Ok(Self { main_pass })
+	}
+}
+
+impl RenderNode for MainPass {
+	fn run(
 		&self,
 		frame: &mut FrameContext,
 		assets: &RenderAssets,
@@ -54,8 +103,24 @@ impl RenderGraph {
 			1
 		);
 	}
+}
 
-	fn run_blit_pass(
+
+pub struct BlitPass {
+	blit: Handle<RenderPipeline>
+}
+
+impl<'a> TryFrom<&'a RenderAssets> for BlitPass {
+	type Error = AssetError<'a>;
+	
+	fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
+		let blit = assets.get_dependency_handle("blit")?;
+		Ok(Self { blit })
+	}
+}
+
+impl RenderNode for BlitPass {
+	fn run(
 		&self,
 		frame: &mut FrameContext,
 		assets: &RenderAssets,
