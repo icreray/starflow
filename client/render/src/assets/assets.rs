@@ -74,8 +74,8 @@ mod sealed {
 	impl RenderAsset for wgpu::ComputePipeline {}
 }
 
-type AssetRegistry<R> = Registry<Box<str>, R>;
 
+type AssetRegistry<R> = Registry<Box<str>, R>;
 
 #[derive(Default)]
 pub(crate) struct RenderAssets {
