@@ -5,7 +5,7 @@ use wgpu::Device;
 
 use starflow_util::{Handle, Registry};
 
-use crate::core::RenderSurface;
+use crate::{assets::assets::sealed::RenderAsset, core::RenderSurface};
 
 
 pub struct RenderAssetsCreation<'renderer> {
@@ -74,19 +74,16 @@ mod sealed {
 	impl RenderAsset for wgpu::ComputePipeline {}
 }
 
-pub(crate) type BindGroupLayouts = Registry<Box<str>, wgpu::BindGroupLayout>;
-pub(crate) type PipelineLayouts = Registry<Box<str>, wgpu::PipelineLayout>;
-pub(crate) type ShaderModules = Registry<Box<str>, wgpu::ShaderModule>;
-pub(crate) type RenderPipelines = Registry<Box<str>, wgpu::RenderPipeline>;
-pub(crate) type ComputePipelines = Registry<Box<str>, wgpu::ComputePipeline>;
+type AssetRegistry<R> = Registry<Box<str>, R>;
+
 
 #[derive(Default)]
 pub(crate) struct RenderAssets {
-	bind_group_layouts: BindGroupLayouts,
-	pipeline_layouts: PipelineLayouts,
-	shader_modules: ShaderModules,
-	render_pipelines: RenderPipelines,
-	compute_pipelines: ComputePipelines
+	bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
+	pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
+	shader_modules: AssetRegistry<wgpu::ShaderModule>,
+	render_pipelines: AssetRegistry<wgpu::RenderPipeline>,
+	compute_pipelines: AssetRegistry<wgpu::ComputePipeline>
 }
 
 impl RenderAssets {
