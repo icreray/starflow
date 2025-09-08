@@ -5,7 +5,7 @@ use wgpu::Device;
 
 use starflow_util::{Handle, Registry};
 
-use crate::{assets::assets::sealed::RenderAsset, core::RenderSurface};
+use crate::core::RenderSurface;
 
 
 pub struct RenderAssetsCreation<'renderer> {
@@ -58,11 +58,15 @@ impl<'a> error::Error for AssetError<'a> {}
 
 
 pub trait RenderAssetDesc<'a> {
-	type Asset: sealed::RenderAsset;
+	type Asset: RenderAsset;
 
 	fn key(&self) -> &str;
 	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
 }
+
+
+pub trait RenderAsset: sealed::RenderAsset {}
+impl<T: sealed::RenderAsset> RenderAsset for T {}
 
 mod sealed {
 	pub trait RenderAsset {}
@@ -90,7 +94,7 @@ impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_registry().get_handle(key)
@@ -99,7 +103,7 @@ impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_asset<R>(&self, key: &str) -> Option<&R>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_registry().get(key)
@@ -108,7 +112,7 @@ impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_handle(key)
@@ -118,7 +122,7 @@ impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_asset(key)
@@ -128,7 +132,7 @@ impl RenderAssets {
 
 impl<R> Index<&Handle<R>> for RenderAssets
 where
-	R: sealed::RenderAsset,
+	R: RenderAsset,
 	RenderAssets: HasRegistry<R>
 {
 	type Output = R;
@@ -140,19 +144,19 @@ where
 
 
 trait HasRegistry<A>
-where A: sealed::RenderAsset {
-	fn get_registry(&self) -> &Registry<Box<str>, A>;
-	fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, A>;
+where A: RenderAsset {
+	fn get_registry(&self) -> &AssetRegistry<A>;
+	fn get_registry_mut(&mut self) -> &mut AssetRegistry<A>;
 }
 
 macro_rules! impl_has_registry {
 	($render_assets:ty, $asset_ty:ty, $field:ident) => {
 		impl HasRegistry<$asset_ty> for $render_assets {
-			fn get_registry(&self) -> &Registry<Box<str>, $asset_ty> {
+			fn get_registry(&self) -> &AssetRegistry<$asset_ty> {
 				&self.$field
 			}
 
-			fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, $asset_ty> {
+			fn get_registry_mut(&mut self) -> &mut AssetRegistry<$asset_ty> {
 				&mut self.$field
 			}
 		}
