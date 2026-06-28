@@ -53,7 +53,7 @@ impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
 		let layouts = self.bind_group_layouts.iter()
-			.map(|&layout| ctx.get_dependency_asset(layout))
+			.map(|&layout| ctx.assets.get_dependency_asset(layout))
 			.collect::<AssetResult<'a, Vec<_>>>()?;
 		Ok(ctx.device.create_pipeline_layout(&PipelineLayoutDescriptor {
 			label: Some(self.key),
@@ -102,9 +102,9 @@ impl<'a> RenderAssetDesc<'a> for ComputePipeline<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
 		let layout = self.layout
-			.map(|layout| ctx.get_dependency_asset(layout))
+			.map(|layout| ctx.assets.get_dependency_asset(layout))
 			.transpose()?;
-		let module = ctx.get_dependency_asset(self.module)?;
+		let module = ctx.assets.get_dependency_asset(self.module)?;
 
 		Ok(ctx.device.create_compute_pipeline(&ComputePipelineDescriptor {
 			label: Some(self.key),
@@ -137,14 +137,14 @@ impl<'a> RenderAssetDesc<'a> for RenderPipeline<'a> {
 
 	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
 		let layout = self.layout
-			.map(|layout| ctx.get_dependency_asset(layout))
+			.map(|layout| ctx.assets.get_dependency_asset(layout))
 			.transpose()?;
 
-		let vertex = ctx.get_dependency_asset(self.vertex)?;
+		let vertex = ctx.assets.get_dependency_asset(self.vertex)?;
 
 		let fragment = match self.fragment {
 			Some(fragment) => {
-				let fragment = ctx.get_dependency_asset(fragment)?;
+				let fragment = ctx.assets.get_dependency_asset(fragment)?;
 				Some(FragmentState {
 					module: fragment,
 					entry_point: None,

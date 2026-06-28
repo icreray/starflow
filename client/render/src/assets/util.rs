@@ -1,7 +1,7 @@
 use std::num::NonZero;
 
-pub use wgpu::{TextureFormat, StorageTextureAccess};
-use wgpu::{BindGroupLayoutEntry, BindingType, ShaderStages, TextureViewDimension};
+pub use wgpu::{TextureFormat, StorageTextureAccess, ShaderStages};
+use wgpu::{BindGroupLayoutEntry, BindingType, TextureViewDimension};
 
 pub struct BindGroupLayoutEntryBuilder {
 	binding: u32,

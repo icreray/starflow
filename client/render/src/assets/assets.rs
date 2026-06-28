@@ -1,6 +1,5 @@
 use core::{error, fmt};
 use std::ops::Index;
-use default::default;
 
 use wgpu::Device;
 
@@ -37,17 +36,6 @@ impl<'r> RenderAssetsCreation<'r> {
 			.set(key, asset)
 		)
 	}
-
-	#[allow(private_bounds)]
-	pub(super) fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
-	where
-		R: sealed::RenderAsset,
-		RenderAssets: HasRegistry<R>
-	{
-		self.assets
-			.get_asset(key)
-			.ok_or(AssetError::MissingDependency(key))
-	}
 }
 
 
@@ -70,11 +58,15 @@ impl<'a> error::Error for AssetError<'a> {}
 
 
 pub trait RenderAssetDesc<'a> {
-	type Asset: sealed::RenderAsset;
+	type Asset: RenderAsset;
 
 	fn key(&self) -> &str;
 	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
 }
+
+
+pub trait RenderAsset: sealed::RenderAsset {}
+impl<T: sealed::RenderAsset> RenderAsset for T {}
 
 mod sealed {
 	pub trait RenderAsset {}
@@ -86,26 +78,23 @@ mod sealed {
 	impl RenderAsset for wgpu::ComputePipeline {}
 }
 
-pub(crate) type BindGroupLayouts = Registry<Box<str>, wgpu::BindGroupLayout>;
-pub(crate) type PipelineLayouts = Registry<Box<str>, wgpu::PipelineLayout>;
-pub(crate) type ShaderModules = Registry<Box<str>, wgpu::ShaderModule>;
-pub(crate) type RenderPipelines = Registry<Box<str>, wgpu::RenderPipeline>;
-pub(crate) type ComputePipelines = Registry<Box<str>, wgpu::ComputePipeline>;
+
+type AssetRegistry<R> = Registry<Box<str>, R>;
 
 #[derive(Default)]
 pub(crate) struct RenderAssets {
-	bind_group_layouts: BindGroupLayouts,
-	pipeline_layouts: PipelineLayouts,
-	shader_modules: ShaderModules,
-	render_pipelines: RenderPipelines,
-	compute_pipelines: ComputePipelines
+	bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
+	pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
+	shader_modules: AssetRegistry<wgpu::ShaderModule>,
+	render_pipelines: AssetRegistry<wgpu::RenderPipeline>,
+	compute_pipelines: AssetRegistry<wgpu::ComputePipeline>
 }
 
 impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_registry().get_handle(key)
@@ -114,16 +103,36 @@ impl RenderAssets {
 	#[allow(private_bounds)]
 	pub fn get_asset<R>(&self, key: &str) -> Option<&R>
 	where
-		R: sealed::RenderAsset,
+		R: RenderAsset,
 		Self: HasRegistry<R>
 	{
 		self.get_registry().get(key)
+	}
+
+	#[allow(private_bounds)]
+	pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
+	where
+		R: RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get_handle(key)
+			.ok_or(AssetError::MissingDependency(key))
+	}
+
+	#[allow(private_bounds)]
+	pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
+	where
+		R: RenderAsset,
+		Self: HasRegistry<R>
+	{
+		self.get_asset(key)
+			.ok_or(AssetError::MissingDependency(key))
 	}
 }
 
 impl<R> Index<&Handle<R>> for RenderAssets
 where
-	R: sealed::RenderAsset,
+	R: RenderAsset,
 	RenderAssets: HasRegistry<R>
 {
 	type Output = R;
@@ -135,19 +144,19 @@ where
 
 
 trait HasRegistry<A>
-where A: sealed::RenderAsset {
-	fn get_registry(&self) -> &Registry<Box<str>, A>;
-	fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, A>;
+where A: RenderAsset {
+	fn get_registry(&self) -> &AssetRegistry<A>;
+	fn get_registry_mut(&mut self) -> &mut AssetRegistry<A>;
 }
 
 macro_rules! impl_has_registry {
 	($render_assets:ty, $asset_ty:ty, $field:ident) => {
 		impl HasRegistry<$asset_ty> for $render_assets {
-			fn get_registry(&self) -> &Registry<Box<str>, $asset_ty> {
+			fn get_registry(&self) -> &AssetRegistry<$asset_ty> {
 				&self.$field
 			}
 
-			fn get_registry_mut(&mut self) -> &mut Registry<Box<str>, $asset_ty> {
+			fn get_registry_mut(&mut self) -> &mut AssetRegistry<$asset_ty> {
 				&mut self.$field
 			}
 		}
@@ -159,63 +168,3 @@ impl_has_registry!(RenderAssets, wgpu::PipelineLayout, pipeline_layouts);
 impl_has_registry!(RenderAssets, wgpu::ShaderModule, shader_modules);
 impl_has_registry!(RenderAssets, wgpu::RenderPipeline, render_pipelines);
 impl_has_registry!(RenderAssets, wgpu::ComputePipeline, compute_pipelines);
-
-
-// TODO: Move this outside renderer with error handling
-pub(crate) fn create_render_assets(surface: &RenderSurface, device: &Device) -> RenderAssets {
-	use wgpu::{ShaderStages, TextureFormat, StorageTextureAccess};
-	use crate::assets::util::binding;
-	use super::desc::*;
-
-	let mut assets = RenderAssets::default();
-	{
-		let mut ctx = RenderAssetsCreation::new(&mut assets, surface, device);
-
-		ctx.create(BindGroupLayout::new("output_texture", &[
-				binding(0)
-					.visibility(ShaderStages::COMPUTE)
-					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::WriteOnly)
-		])).unwrap();
-		ctx.create(BindGroupLayout::new("input_texture", &[
-				binding(0)
-					.visibility(ShaderStages::FRAGMENT)
-					.texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadOnly)
-		])).unwrap();
-		// main pass
-		ctx.create(PipelineLayout {
-			key: "main_pass",
-			bind_group_layouts: &["output_texture"],
-			push_constant_ranges: &[]
-		}).unwrap();
-		ctx.create(ShaderModule::new("main_pass",
-			ShaderSource::Wgsl(include_str!("../../../../assets/shaders/main_pass.wgsl").into())
-		)).unwrap();
-		ctx.create(ComputePipeline {
-			key: "main_pass",
-			layout: Some("main_pass"),
-			module: "main_pass",
-		}).unwrap();
-		// blit
-		ctx.create(ShaderModule::new("fullscreen",
-			ShaderSource::Wgsl(include_str!("../../../../assets/shaders/fullscreen.wgsl").into())
-		)).unwrap();
-		ctx.create(ShaderModule::new("blit",
-			ShaderSource::Wgsl(include_str!("../../../../assets/shaders/blit.wgsl").into())
-		)).unwrap();
-		ctx.create(PipelineLayout {
-			key: "blit",
-			bind_group_layouts: &["input_texture"],
-			push_constant_ranges: &[]
-		}).unwrap();
-		ctx.create(RenderPipeline {
-			key: "blit",
-			layout: Some("blit"),
-			vertex: "fullscreen",
-			fragment: Some("blit"),
-			primitive: default(),
-			depth_stencil: None,
-			multisample: default()
-		}).unwrap();
-	}
-	assets
-}
