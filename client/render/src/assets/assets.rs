@@ -9,33 +9,34 @@ use crate::core::RenderSurface;
 
 
 pub struct RenderAssetsCreation<'renderer> {
-	pub(super) assets: &'renderer mut RenderAssets,
-	pub(super) surface: &'renderer RenderSurface<'renderer>,
-	pub(super) device: &'renderer Device
+    pub(super) assets: &'renderer mut RenderAssets,
+    pub(super) surface: &'renderer RenderSurface<'renderer>,
+    pub(super) device: &'renderer Device
 }
 
 impl<'r> RenderAssetsCreation<'r> {
-	pub(crate) fn new(
-		assets: &'r mut RenderAssets,
-		surface: &'r RenderSurface<'r>,
-		device: &'r Device
-	) -> Self {
-		Self { assets, surface, device }
-	}
+    pub(crate) fn new(
+        assets: &'r mut RenderAssets,
+        surface: &'r RenderSurface<'r>,
+        device: &'r Device
+    ) -> Self {
+        Self {
+            assets,
+            surface,
+            device
+        }
+    }
 
-	#[allow(private_bounds)]
-	pub fn create<'a, D>(&mut self, descriptor: D) -> AssetResult<'a, Handle<D::Asset>>
-	where 
-		D: RenderAssetDesc<'a>,
-		RenderAssets: HasRegistry<D::Asset>
-	{
-		let key = descriptor.key().into();
-		let asset = descriptor.create(self)?;
-		Ok(self.assets
-			.get_registry_mut()
-			.set(key, asset)
-		)
-	}
+    #[allow(private_bounds)]
+    pub fn create<'a, D>(&mut self, descriptor: D) -> AssetResult<'a, Handle<D::Asset>>
+    where
+        D: RenderAssetDesc<'a>,
+        RenderAssets: HasRegistry<D::Asset>
+    {
+        let key = descriptor.key().into();
+        let asset = descriptor.create(self)?;
+        Ok(self.assets.get_registry_mut().set(key, asset))
+    }
 }
 
 
@@ -43,25 +44,27 @@ pub type AssetResult<'a, R> = Result<R, AssetError<'a>>;
 
 #[derive(Debug)]
 pub enum AssetError<'a> {
-	MissingDependency(&'a str)
+    MissingDependency(&'a str)
 }
 
 impl<'a> fmt::Display for AssetError<'a> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		match self {
-			Self::MissingDependency(dep) => {write!(f, "Missing dependency {}", dep)}
-		}
-	}
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingDependency(dep) => {
+                write!(f, "Missing dependency {}", dep)
+            }
+        }
+    }
 }
 
 impl<'a> error::Error for AssetError<'a> {}
 
 
 pub trait RenderAssetDesc<'a> {
-	type Asset: RenderAsset;
+    type Asset: RenderAsset;
 
-	fn key(&self) -> &str;
-	fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
+    fn key(&self) -> &str;
+    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
 }
 
 
@@ -69,13 +72,13 @@ pub trait RenderAsset: sealed::RenderAsset {}
 impl<T: sealed::RenderAsset> RenderAsset for T {}
 
 mod sealed {
-	pub trait RenderAsset {}
+    pub trait RenderAsset {}
 
-	impl RenderAsset for wgpu::BindGroupLayout {}
-	impl RenderAsset for wgpu::PipelineLayout {}
-	impl RenderAsset for wgpu::ShaderModule {}
-	impl RenderAsset for wgpu::RenderPipeline {}
-	impl RenderAsset for wgpu::ComputePipeline {}
+    impl RenderAsset for wgpu::BindGroupLayout {}
+    impl RenderAsset for wgpu::PipelineLayout {}
+    impl RenderAsset for wgpu::ShaderModule {}
+    impl RenderAsset for wgpu::RenderPipeline {}
+    impl RenderAsset for wgpu::ComputePipeline {}
 }
 
 
@@ -83,84 +86,81 @@ type AssetRegistry<R> = Registry<Box<str>, R>;
 
 #[derive(Default)]
 pub(crate) struct RenderAssets {
-	bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
-	pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
-	shader_modules: AssetRegistry<wgpu::ShaderModule>,
-	render_pipelines: AssetRegistry<wgpu::RenderPipeline>,
-	compute_pipelines: AssetRegistry<wgpu::ComputePipeline>
+    bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
+    pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
+    shader_modules: AssetRegistry<wgpu::ShaderModule>,
+    render_pipelines: AssetRegistry<wgpu::RenderPipeline>,
+    compute_pipelines: AssetRegistry<wgpu::ComputePipeline>
 }
 
 impl RenderAssets {
-	#[allow(private_bounds)]
-	pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
-	where
-		R: RenderAsset,
-		Self: HasRegistry<R>
-	{
-		self.get_registry().get_handle(key)
-	}
+    #[allow(private_bounds)]
+    pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
+    where
+        R: RenderAsset,
+        Self: HasRegistry<R>
+    {
+        self.get_registry().get_handle(key)
+    }
 
-	#[allow(private_bounds)]
-	pub fn get_asset<R>(&self, key: &str) -> Option<&R>
-	where
-		R: RenderAsset,
-		Self: HasRegistry<R>
-	{
-		self.get_registry().get(key)
-	}
+    #[allow(private_bounds)]
+    pub fn get_asset<R>(&self, key: &str) -> Option<&R>
+    where
+        R: RenderAsset,
+        Self: HasRegistry<R>
+    {
+        self.get_registry().get(key)
+    }
 
-	#[allow(private_bounds)]
-	pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
-	where
-		R: RenderAsset,
-		Self: HasRegistry<R>
-	{
-		self.get_handle(key)
-			.ok_or(AssetError::MissingDependency(key))
-	}
+    #[allow(private_bounds)]
+    pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
+    where
+        R: RenderAsset,
+        Self: HasRegistry<R>
+    {
+        self.get_handle(key)
+            .ok_or(AssetError::MissingDependency(key))
+    }
 
-	#[allow(private_bounds)]
-	pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
-	where
-		R: RenderAsset,
-		Self: HasRegistry<R>
-	{
-		self.get_asset(key)
-			.ok_or(AssetError::MissingDependency(key))
-	}
+    #[allow(private_bounds)]
+    pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
+    where
+        R: RenderAsset,
+        Self: HasRegistry<R>
+    {
+        self.get_asset(key)
+            .ok_or(AssetError::MissingDependency(key))
+    }
 }
 
 impl<R> Index<&Handle<R>> for RenderAssets
 where
-	R: RenderAsset,
-	RenderAssets: HasRegistry<R>
+    R: RenderAsset,
+    RenderAssets: HasRegistry<R>
 {
-	type Output = R;
+    type Output = R;
 
-	fn index(&self, index: &Handle<R>) -> &Self::Output {
-		&self.get_registry()[index]
-	}
+    fn index(&self, index: &Handle<R>) -> &Self::Output { &self.get_registry()[index] }
 }
 
 
 trait HasRegistry<A>
-where A: RenderAsset {
-	fn get_registry(&self) -> &AssetRegistry<A>;
-	fn get_registry_mut(&mut self) -> &mut AssetRegistry<A>;
+where A: RenderAsset
+{
+    fn get_registry(&self) -> &AssetRegistry<A>;
+    fn get_registry_mut(&mut self) -> &mut AssetRegistry<A>;
 }
 
 macro_rules! impl_has_registry {
-	($render_assets:ty, $asset_ty:ty, $field:ident) => {
-		impl HasRegistry<$asset_ty> for $render_assets {
-			fn get_registry(&self) -> &AssetRegistry<$asset_ty> {
-				&self.$field
-			}
+    ($render_assets:ty, $asset_ty:ty, $field:ident) => {
+        impl HasRegistry<$asset_ty> for $render_assets {
+            fn get_registry(&self) -> &AssetRegistry<$asset_ty> { &self.$field }
 
-			fn get_registry_mut(&mut self) -> &mut AssetRegistry<$asset_ty> {
-				&mut self.$field
-			}
-		}
-	};
+            fn get_registry_mut(&mut self) -> &mut AssetRegistry<$asset_ty> {
+                &mut self.$field
+            }
+        }
+    };
 }
 
 impl_has_registry!(RenderAssets, wgpu::BindGroupLayout, bind_group_layouts);
