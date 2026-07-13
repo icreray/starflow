@@ -2,14 +2,14 @@ use default::default;
 use futures_lite::future;
 
 use starflow_render::{
-    Features, GpuContextConfig, Renderer,
+    Features, Renderer, RendererConfig,
     assets::{RenderAssetsCreation, desc::*, util::*}
 };
 use starflow_window::WindowModule;
 
 
 pub fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
-    let context_config = GpuContextConfig::default()
+    let context_config = RendererConfig::default()
         .add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES);
     let mut renderer =
         future::block_on(Renderer::new(context_config, window.clone_handle()));
