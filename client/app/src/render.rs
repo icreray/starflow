@@ -38,8 +38,8 @@ fn create_assets(ctx: &mut RenderAssetsCreation) {
     // main pass
     ctx.create(PipelineLayout {
         key: "main_pass",
-        bind_group_layouts: &["output_texture"],
-        push_constant_ranges: &[]
+        bind_group_layouts: &[Some("output_texture")],
+        immediate_size: 0
     })
     .unwrap();
     ctx.create(ShaderModule::new(
@@ -72,8 +72,8 @@ fn create_assets(ctx: &mut RenderAssetsCreation) {
 
     ctx.create(PipelineLayout {
         key: "blit",
-        bind_group_layouts: &["input_texture"],
-        push_constant_ranges: &[]
+        bind_group_layouts: &[Some("input_texture")],
+        immediate_size: 0
     })
     .unwrap();
 

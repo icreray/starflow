@@ -5,9 +5,7 @@ use wgpu::{
     ColorWrites, ComputePipelineDescriptor, FragmentState, PipelineLayoutDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, VertexState
 };
-pub use wgpu::{
-    DepthStencilState, MultisampleState, PrimitiveState, PushConstantRange, ShaderSource
-};
+pub use wgpu::{DepthStencilState, MultisampleState, PrimitiveState, ShaderSource};
 
 use crate::assets::AssetResult;
 
@@ -43,8 +41,8 @@ impl<'a> RenderAssetDesc<'a> for BindGroupLayout<'a> {
 
 pub struct PipelineLayout<'a> {
     pub key: &'a str,
-    pub bind_group_layouts: &'a [&'a str],
-    pub push_constant_ranges: &'a [PushConstantRange]
+    pub bind_group_layouts: &'a [Option<&'a str>],
+    pub immediate_size: u32
 }
 
 impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
@@ -56,14 +54,18 @@ impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
         let layouts = self
             .bind_group_layouts
             .iter()
-            .map(|&layout| ctx.assets.get_dependency_asset(layout))
+            .map(|&layout| {
+                layout
+                    .map(|key| ctx.assets.get_dependency_asset(key))
+                    .transpose()
+            })
             .collect::<AssetResult<'a, Vec<_>>>()?;
         Ok(ctx
             .device
             .create_pipeline_layout(&PipelineLayoutDescriptor {
                 label: Some(self.key),
                 bind_group_layouts: &layouts,
-                push_constant_ranges: self.push_constant_ranges
+                immediate_size: self.immediate_size
             }))
     }
 }
@@ -181,7 +183,7 @@ impl<'a> RenderAssetDesc<'a> for RenderPipeline<'a> {
                 primitive: self.primitive,
                 depth_stencil: self.depth_stencil,
                 multisample: self.multisample,
-                multiview: None,
+                multiview_mask: None,
                 cache: None
             }))
     }
