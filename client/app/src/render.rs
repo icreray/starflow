@@ -2,8 +2,9 @@ use default::default;
 use futures_lite::future;
 
 use starflow_render::{
-    Features, Renderer, RendererConfig,
-    assets::{RenderAssetsCreation, desc::*, util::*}
+    Renderer,
+    assets::{RenderAssetsCreation, desc::*, util::*},
+    config::{Features, RendererConfig}
 };
 use starflow_window::WindowModule;
 
