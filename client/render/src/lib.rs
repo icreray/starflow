@@ -4,12 +4,17 @@ mod core;
 mod graph;
 mod resources;
 
+use thiserror::Error;
+
 use glued::module_impl;
 
 use crate::{
     assets::{RenderAssets, RenderAssetsCreation},
     config::RendererConfig,
-    core::{FrameContext, GpuContext, RenderSurface, util::SizedSurfaceTarget},
+    core::{
+        FrameContext, GpuContext, GpuContextError, RenderSurface,
+        util::SizedSurfaceTarget
+    },
     graph::{BlitPass, MainPass, RenderGraph, RenderGraphCreation},
     resources::RenderResources
 };
@@ -24,29 +29,30 @@ pub struct Renderer<'window> {
 }
 
 impl<'w> Renderer<'w> {
-    pub async fn new(
+    pub async fn try_new(
         config: RendererConfig<'_>,
         surface_target: impl Into<SizedSurfaceTarget<'w>>
-    ) -> Self {
-        let context = GpuContext::new(config).await;
+    ) -> Result<Self, RendererError> {
+        let context = GpuContext::try_new(config).await?;
 
         let target: SizedSurfaceTarget = surface_target.into();
         let surface = RenderSurface::configured(target.target, target.size, &context)
-            .expect("Failed to create surface");
+            .ok_or(RendererError::FailedToCreateSurface)?;
 
         let assets = RenderAssets::default();
         let resources = RenderResources::new(&context.device, &assets, surface.size());
         let mut graph = RenderGraph::default();
+        // TODO: Configure after renderer creation
         graph.add_node(MainPass::try_from(&assets).unwrap());
         graph.add_node(BlitPass::try_from(&assets).unwrap());
 
-        Self {
+        Ok(Self {
             context,
             surface,
             assets,
             resources,
             graph
-        }
+        })
     }
 
     pub fn create_assets<F>(&mut self, f: F)
@@ -83,4 +89,13 @@ impl<'w> Renderer<'w> {
 impl Renderer<'_> {
     #[inline(always)]
     pub fn update(app: &mut A) { app.module::<Self>().draw_frame(); }
+}
+
+
+#[derive(Error, Debug)]
+pub enum RendererError {
+    #[error(transparent)]
+    FailedToInitContext(#[from] GpuContextError),
+    #[error("Failed to create surface")]
+    FailedToCreateSurface
 }

@@ -12,7 +12,8 @@ pub fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
     let context_config = RendererConfig::default()
         .add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES);
     let mut renderer =
-        future::block_on(Renderer::new(context_config, window.clone_handle()));
+        future::block_on(Renderer::try_new(context_config, window.clone_handle()))
+            .expect("Failed to initialize renderer");
     renderer.create_assets(create_assets);
     renderer
 }

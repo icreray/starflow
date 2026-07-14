@@ -12,4 +12,5 @@ starflow-util = { workspace = true, features = ["winit", "wgpu"] }
 
 wgpu =  { workspace = true }
 
+thiserror = { workspace = true }
 winit = { workspace = true, optional = true}

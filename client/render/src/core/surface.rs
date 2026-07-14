@@ -1,3 +1,4 @@
+use thiserror::Error;
 use wgpu::{
     Color,
     CurrentSurfaceTexture::{self, *},
@@ -71,13 +72,19 @@ impl<'w> RenderSurface<'w> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum SurfaceError {
+    #[error("A timeout was encountered while trying to acquire the next frame")]
     Timeout,
+    #[error("The window is occluded")]
     Occluded,
+    #[error("The underlying surface has changed")]
     Outdated,
+    #[error("The surface has been lost")]
     Lost,
+    #[error("A validation error inside `Surface::get_current_texture()` was raised")]
     Validation,
+    #[error("Unknown error")]
     Unknown
 }
 

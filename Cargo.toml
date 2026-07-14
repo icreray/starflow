@@ -12,3 +12,4 @@ starflow-util = { path = "shared/util" }
 wgpu = "29.0.3"
 winit = "0.30.13"
 ahash = "0.8.12"
+thiserror = "2.0.18"
