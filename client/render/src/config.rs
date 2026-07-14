@@ -1,13 +1,13 @@
-use default::default;
-
 pub use wgpu::{
     Backends, Features, InstanceFlags, Label, Limits, MemoryHints, PowerPreference
 };
-use wgpu::{DeviceDescriptor, InstanceDescriptor, RequestAdapterOptions, Trace};
+use wgpu::{
+    DeviceDescriptor, ExperimentalFeatures, InstanceDescriptor, RequestAdapterOptions,
+    Trace
+};
 
 
-pub struct GpuContextConfig<'label> {
-    pub instance_flags: InstanceFlags,
+pub struct RendererConfig<'label> {
     pub backends: Backends,
     pub power_preference: PowerPreference,
     pub device_label: Label<'label>,
@@ -16,10 +16,9 @@ pub struct GpuContextConfig<'label> {
     pub memory_hints: MemoryHints
 }
 
-impl Default for GpuContextConfig<'_> {
+impl Default for RendererConfig<'_> {
     fn default() -> Self {
         Self {
-            instance_flags: InstanceFlags::default(),
             backends: Backends::VULKAN,
             power_preference: PowerPreference::HighPerformance,
             device_label: None,
@@ -31,17 +30,7 @@ impl Default for GpuContextConfig<'_> {
 }
 
 // Chaining mutations
-impl<'l> GpuContextConfig<'l> {
-    pub fn add_flags(mut self, flags: InstanceFlags) -> Self {
-        self.instance_flags |= flags;
-        self
-    }
-
-    pub fn flags(mut self, flags: InstanceFlags) -> Self {
-        self.instance_flags = flags;
-        self
-    }
-
+impl<'l> RendererConfig<'l> {
     pub fn add_backends(mut self, backends: Backends) -> Self {
         self.backends |= backends;
         self
@@ -78,12 +67,12 @@ impl<'l> GpuContextConfig<'l> {
     }
 }
 
-impl GpuContextConfig<'_> {
+// Helper functions
+impl RendererConfig<'_> {
     pub(crate) fn instance_descriptor(&self) -> InstanceDescriptor {
         InstanceDescriptor {
             backends: self.backends,
-            flags: self.instance_flags,
-            ..default()
+            ..InstanceDescriptor::new_without_display_handle()
         }
     }
 
@@ -100,6 +89,7 @@ impl GpuContextConfig<'_> {
             label: self.device_label,
             required_features: self.required_features,
             required_limits: self.required_limits.clone(),
+            experimental_features: ExperimentalFeatures::disabled(),
             memory_hints: self.memory_hints.clone(),
             trace: Trace::Off
         }

@@ -1,14 +1,13 @@
-pub(crate) use frame::*;
-pub(crate) use surface::*;
-
 mod frame;
 mod surface;
 pub mod util;
 
+pub(crate) use frame::*;
+pub(crate) use surface::*;
 
 use wgpu::{Adapter, CommandEncoder, CommandEncoderDescriptor, Device, Instance, Queue};
 
-use crate::GpuContextConfig;
+use crate::RendererConfig;
 
 
 pub(crate) struct GpuContext {
@@ -19,8 +18,8 @@ pub(crate) struct GpuContext {
 }
 
 impl GpuContext {
-    pub async fn new(config: GpuContextConfig<'_>) -> Self {
-        let instance = Instance::new(&config.instance_descriptor());
+    pub async fn new(config: RendererConfig<'_>) -> Self {
+        let instance = Instance::new(config.instance_descriptor());
 
         let adapter = instance
             .request_adapter(&config.request_adapter_options())

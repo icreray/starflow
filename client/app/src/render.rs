@@ -2,14 +2,15 @@ use default::default;
 use futures_lite::future;
 
 use starflow_render::{
-    Features, GpuContextConfig, Renderer,
-    assets::{RenderAssetsCreation, desc::*, util::*}
+    Renderer,
+    assets::{RenderAssetsCreation, desc::*, util::*},
+    config::{Features, RendererConfig}
 };
 use starflow_window::WindowModule;
 
 
 pub fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
-    let context_config = GpuContextConfig::default()
+    let context_config = RendererConfig::default()
         .add_features(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES);
     let mut renderer =
         future::block_on(Renderer::new(context_config, window.clone_handle()));
@@ -38,8 +39,8 @@ fn create_assets(ctx: &mut RenderAssetsCreation) {
     // main pass
     ctx.create(PipelineLayout {
         key: "main_pass",
-        bind_group_layouts: &["output_texture"],
-        push_constant_ranges: &[]
+        bind_group_layouts: &[Some("output_texture")],
+        immediate_size: 0
     })
     .unwrap();
     ctx.create(ShaderModule::new(
@@ -72,8 +73,8 @@ fn create_assets(ctx: &mut RenderAssetsCreation) {
 
     ctx.create(PipelineLayout {
         key: "blit",
-        bind_group_layouts: &["input_texture"],
-        push_constant_ranges: &[]
+        bind_group_layouts: &[Some("input_texture")],
+        immediate_size: 0
     })
     .unwrap();
 

@@ -3,12 +3,12 @@ resolver = "3"
 members = ["client/*", "shared/*"]
 
 [workspace.dependencies]
-glued = { path = "../glued"}
+glued = { package = "glued", git = "https://github.com/icreray/glued.git"}
 starflow-client-app = { path = "client/app" }
 starflow-render = { path = "client/render" }
 starflow-window = { path = "client/window" }
 starflow-util = { path = "shared/util" }
 
-wgpu = "25.0.0"
-winit = "0.30.12"
+wgpu = "29.0.3"
+winit = "0.30.13"
 ahash = "0.8.12"

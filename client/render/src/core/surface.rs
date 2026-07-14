@@ -1,13 +1,15 @@
 use default::default;
 
 use wgpu::{
-    Color, Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface,
-    SurfaceConfiguration, SurfaceError, SurfaceTarget, SurfaceTexture, TextureFormat,
-    TextureView
+    Color,
+    CurrentSurfaceTexture::{self, *},
+    Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface, SurfaceConfiguration,
+    SurfaceTarget, SurfaceTexture, TextureFormat, TextureView
 };
 
-use crate::core::GpuContext;
 use starflow_util::Size;
+
+use crate::core::GpuContext;
 
 
 pub(crate) struct RenderSurface<'window> {
@@ -44,12 +46,15 @@ impl<'w> RenderSurface<'w> {
         device: &Device
     ) -> Result<SwapchainTexture, SurfaceError> {
         let texture = match self.surface.get_current_texture() {
-            Ok(texture) => texture,
-            Err(SurfaceError::Outdated) => {
+            Success(texture) | Suboptimal(texture) => texture,
+            Outdated => {
                 self.reconfigure(device);
-                self.surface.get_current_texture()?
+                match self.surface.get_current_texture() {
+                    Success(texture) | Suboptimal(texture) => texture,
+                    variant => return Err(variant.into())
+                }
             }
-            Err(e) => return Err(e)
+            variant => return Err(variant.into())
         };
         let view = texture.texture.create_view(&default());
         Ok(SwapchainTexture { texture, view })
@@ -68,6 +73,29 @@ impl<'w> RenderSurface<'w> {
     }
 }
 
+#[derive(Debug)]
+pub enum SurfaceError {
+    Timeout,
+    Occluded,
+    Outdated,
+    Lost,
+    Validation,
+    Unknown
+}
+
+impl From<CurrentSurfaceTexture> for SurfaceError {
+    fn from(value: CurrentSurfaceTexture) -> Self {
+        match value {
+            Timeout => Self::Timeout,
+            Occluded => Self::Occluded,
+            Outdated => Self::Outdated,
+            Lost => Self::Lost,
+            Validation => Self::Validation,
+            _ => Self::Unknown
+        }
+    }
+}
+
 
 pub(crate) struct SwapchainTexture {
     texture: SurfaceTexture,
@@ -81,9 +109,10 @@ impl SwapchainTexture {
     #[inline]
     pub fn height(&self) -> u32 { self.texture.texture.height() }
 
-    pub fn clear_attachment(&'_ self, color: Color) -> RenderPassColorAttachment<'_> {
+    pub fn clear_attachment(&self, color: Color) -> RenderPassColorAttachment<'_> {
         RenderPassColorAttachment {
             view: &self.view,
+            depth_slice: None,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: LoadOp::Clear(color),
