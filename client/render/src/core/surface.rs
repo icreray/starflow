@@ -1,5 +1,3 @@
-use default::default;
-
 use wgpu::{
     Color,
     CurrentSurfaceTexture::{self, *},
@@ -7,7 +5,7 @@ use wgpu::{
     SurfaceTarget, SurfaceTexture, TextureFormat, TextureView
 };
 
-use starflow_util::Size;
+use starflow_util::{Size, default};
 
 use crate::core::GpuContext;
 

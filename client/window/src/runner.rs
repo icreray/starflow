@@ -1,4 +1,3 @@
-use default::default;
 use log::error;
 
 use winit::{
@@ -8,8 +7,10 @@ use winit::{
     window::WindowId
 };
 
-use crate::WindowModule;
 use glued::{AppRunner, ModularApp};
+use starflow_util::default;
+
+use crate::WindowModule;
 
 
 pub struct WinitRunner;

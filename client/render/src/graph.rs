@@ -1,10 +1,8 @@
-use default::default;
-
 use wgpu::{
     Color, ComputePassDescriptor, ComputePipeline, RenderPassDescriptor, RenderPipeline
 };
 
-use starflow_util::Handle;
+use starflow_util::{Handle, default};
 
 use crate::{
     assets::{AssetError, AssetResult, RenderAssets},

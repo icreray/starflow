@@ -1,11 +1,9 @@
-use default::default;
-
 use wgpu::{
     BindGroup, BindGroupDescriptor, Device, Texture, TextureDescriptor, TextureDimension,
     TextureFormat, TextureUsages, TextureView
 };
 
-use starflow_util::Size;
+use starflow_util::{Size, default};
 
 use crate::{assets::RenderAssets, core::util::AsBindGroupEntry};
 

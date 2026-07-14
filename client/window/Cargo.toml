@@ -8,5 +8,4 @@ glued = { workspace = true }
 starflow-util = { workspace = true }
 
 winit = { workspace = true }
-default = "0.1.2"
 log = "0.4.27"

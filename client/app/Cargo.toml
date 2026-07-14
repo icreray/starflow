@@ -7,7 +7,7 @@ edition = "2024"
 glued = { workspace = true }
 starflow-window = { workspace = true }
 starflow-render = { workspace = true, features = ["winit"] }
+starflow-util = { workspace = true }
 
-default = "0.1.2"
 futures-lite = "2.6.0"
 env_logger = "0.11.8"

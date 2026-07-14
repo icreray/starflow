@@ -1,4 +1,3 @@
-use default::default;
 use futures_lite::future;
 
 use starflow_render::{
@@ -6,8 +5,8 @@ use starflow_render::{
     assets::{RenderAssetsCreation, desc::*, util::*},
     config::{Features, RendererConfig}
 };
+use starflow_util::default;
 use starflow_window::WindowModule;
-
 
 pub fn create_renderer<'w>(window: &WindowModule) -> Renderer<'w> {
     let context_config = RendererConfig::default()

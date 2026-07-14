@@ -11,6 +11,5 @@ glued = { workspace = true }
 starflow-util = { workspace = true, features = ["winit", "wgpu"] }
 
 wgpu =  { workspace = true }
-default = "0.1.2"
 
 winit = { workspace = true, optional = true}
