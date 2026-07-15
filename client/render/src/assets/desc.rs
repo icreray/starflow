@@ -1,15 +1,14 @@
+pub use wgpu::{DepthStencilState, MultisampleState, PrimitiveState, ShaderSource};
+
 use wgpu::{
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BlendState, ColorTargetState,
     ColorWrites, ComputePipelineDescriptor, FragmentState, PipelineLayoutDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, VertexState
 };
-pub use wgpu::{DepthStencilState, MultisampleState, PrimitiveState, ShaderSource};
 
 use starflow_util::default;
 
-use crate::assets::AssetResult;
-
-use super::{RenderAssetDesc, RenderAssetsCreation};
+use crate::assets::{AssetResult, RenderAssetDesc, RenderAssetsCreation};
 
 
 pub struct BindGroupLayout<'a> {
