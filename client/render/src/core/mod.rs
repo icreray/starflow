@@ -1,8 +1,7 @@
-mod frame;
-mod surface;
 pub mod util;
 
-pub(crate) use frame::*;
+mod surface;
+
 pub(crate) use surface::*;
 
 use thiserror::Error;

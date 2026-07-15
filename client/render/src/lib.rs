@@ -1,9 +1,12 @@
 pub mod assets;
 pub mod config;
-mod core;
-mod graph;
-mod resources;
+pub mod graph;
+pub mod resources;
+pub mod util;
 
+mod core;
+
+use starflow_util::default;
 use thiserror::Error;
 
 use glued::module_impl;
@@ -11,11 +14,8 @@ use glued::module_impl;
 use crate::{
     assets::{RenderAssets, RenderAssetsCreation},
     config::RendererConfig,
-    core::{
-        FrameContext, GpuContext, GpuContextError, RenderSurface,
-        util::SizedSurfaceTarget
-    },
-    graph::{BlitPass, MainPass, RenderGraph, RenderGraphCreation},
+    core::{GpuContext, GpuContextError, RenderSurface, util::SizedSurfaceTarget},
+    graph::{FrameContext, RenderGraph, RenderGraphCreation},
     resources::RenderResources
 };
 
@@ -41,17 +41,13 @@ impl<'w> Renderer<'w> {
 
         let assets = RenderAssets::default();
         let resources = RenderResources::new(&context.device, &assets, surface.size());
-        let mut graph = RenderGraph::default();
-        // TODO: Configure after renderer creation
-        graph.add_node(MainPass::try_from(&assets).unwrap());
-        graph.add_node(BlitPass::try_from(&assets).unwrap());
 
         Ok(Self {
             context,
             surface,
             assets,
             resources,
-            graph
+            graph: default()
         })
     }
 

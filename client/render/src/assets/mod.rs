@@ -77,7 +77,7 @@ mod sealed {
 type AssetRegistry<R> = Registry<Box<str>, R>;
 
 #[derive(Default)]
-pub(crate) struct RenderAssets {
+pub struct RenderAssets {
     bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
     pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
     shader_modules: AssetRegistry<wgpu::ShaderModule>,

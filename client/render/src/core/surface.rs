@@ -1,9 +1,8 @@
 use thiserror::Error;
 use wgpu::{
-    Color,
-    CurrentSurfaceTexture::{self, *},
-    Device, LoadOp, RenderPassColorAttachment, StoreOp, Surface, SurfaceConfiguration,
-    SurfaceTarget, SurfaceTexture, TextureFormat, TextureView
+    Color, CurrentSurfaceTexture, Device, LoadOp, RenderPassColorAttachment, StoreOp,
+    Surface, SurfaceConfiguration, SurfaceTarget, SurfaceTexture, TextureFormat,
+    TextureView
 };
 
 use starflow_util::{Size, default};
@@ -44,6 +43,7 @@ impl<'w> RenderSurface<'w> {
         &self,
         device: &Device
     ) -> Result<SwapchainTexture, SurfaceError> {
+        use CurrentSurfaceTexture::*;
         let texture = match self.surface.get_current_texture() {
             Success(texture) | Suboptimal(texture) => texture,
             Outdated => {
@@ -91,18 +91,18 @@ pub enum SurfaceError {
 impl From<CurrentSurfaceTexture> for SurfaceError {
     fn from(value: CurrentSurfaceTexture) -> Self {
         match value {
-            Timeout => Self::Timeout,
-            Occluded => Self::Occluded,
-            Outdated => Self::Outdated,
-            Lost => Self::Lost,
-            Validation => Self::Validation,
+            CurrentSurfaceTexture::Timeout => Self::Timeout,
+            CurrentSurfaceTexture::Occluded => Self::Occluded,
+            CurrentSurfaceTexture::Outdated => Self::Outdated,
+            CurrentSurfaceTexture::Lost => Self::Lost,
+            CurrentSurfaceTexture::Validation => Self::Validation,
             _ => Self::Unknown
         }
     }
 }
 
 
-pub(crate) struct SwapchainTexture {
+pub struct SwapchainTexture {
     texture: SurfaceTexture,
     view: TextureView
 }

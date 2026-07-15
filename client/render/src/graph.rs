@@ -1,12 +1,12 @@
-use wgpu::{
-    Color, ComputePassDescriptor, ComputePipeline, RenderPassDescriptor, RenderPipeline
+pub use wgpu::{
+    ComputePassDescriptor, ComputePipeline, RenderPassDescriptor, RenderPipeline
 };
 
-use starflow_util::{Handle, default};
+use wgpu::{CommandEncoder, Queue};
 
 use crate::{
     assets::{AssetError, AssetResult, RenderAssets},
-    core::FrameContext,
+    core::SwapchainTexture,
     resources::RenderResources
 };
 
@@ -66,69 +66,18 @@ impl<'r> RenderGraphCreation<'r> {
 }
 
 
-pub struct MainPass {
-    main_pass: Handle<ComputePipeline>
+pub struct FrameContext {
+    pub encoder: CommandEncoder,
+    pub texture: SwapchainTexture
 }
 
-impl<'a> TryFrom<&'a RenderAssets> for MainPass {
-    type Error = AssetError<'a>;
-
-    fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
-        let main_pass = assets.get_dependency_handle("main_pass")?;
-        Ok(Self { main_pass })
+impl FrameContext {
+    pub(crate) fn new(encoder: CommandEncoder, texture: SwapchainTexture) -> Self {
+        Self { encoder, texture }
     }
-}
 
-impl RenderNode for MainPass {
-    fn run(
-        &self,
-        frame: &mut FrameContext,
-        assets: &RenderAssets,
-        resources: &RenderResources
-    ) {
-        let mut pass = frame.encoder.begin_compute_pass(&ComputePassDescriptor {
-            label: Some("main_pass"),
-            timestamp_writes: None
-        });
-        pass.set_pipeline(&assets[&self.main_pass]);
-        pass.set_bind_group(0, &resources.output_texture_bind_group, &[]);
-        pass.dispatch_workgroups(
-            (frame.texture.width() + 15) >> 4,
-            (frame.texture.height() + 15) >> 4,
-            1
-        );
-    }
-}
-
-
-pub struct BlitPass {
-    blit: Handle<RenderPipeline>
-}
-
-impl<'a> TryFrom<&'a RenderAssets> for BlitPass {
-    type Error = AssetError<'a>;
-
-    fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
-        let blit = assets.get_dependency_handle("blit")?;
-        Ok(Self { blit })
-    }
-}
-
-impl RenderNode for BlitPass {
-    fn run(
-        &self,
-        frame: &mut FrameContext,
-        assets: &RenderAssets,
-        resources: &RenderResources
-    ) {
-        let attachment = frame.texture.clear_attachment(Color::BLACK);
-        let mut pass = frame.encoder.begin_render_pass(&RenderPassDescriptor {
-            label: Some("display"),
-            color_attachments: &[Some(attachment)],
-            ..default()
-        });
-        pass.set_pipeline(&assets[&self.blit]);
-        pass.set_bind_group(0, &resources.input_texture_bind_group, &[]);
-        pass.draw(0..3, 0..1);
+    pub(crate) fn finish(self, queue: &Queue) {
+        queue.submit(std::iter::once(self.encoder.finish()));
+        self.texture.present();
     }
 }

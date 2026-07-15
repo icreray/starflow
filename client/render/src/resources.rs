@@ -10,7 +10,7 @@ use crate::{assets::RenderAssets, core::util::AsBindGroupEntry};
 
 // TODO: Refactoring :D
 #[allow(dead_code)]
-pub(crate) struct RenderResources {
+pub struct RenderResources {
     output_texture: Texture,
     output_texture_view: TextureView,
     pub output_texture_bind_group: BindGroup,
@@ -18,7 +18,11 @@ pub(crate) struct RenderResources {
 }
 
 impl RenderResources {
-    pub fn new(device: &Device, assets: &RenderAssets, surface_size: Size<u32>) -> Self {
+    pub(crate) fn new(
+        device: &Device,
+        assets: &RenderAssets,
+        surface_size: Size<u32>
+    ) -> Self {
         let output_texture = device.create_texture(&TextureDescriptor {
             label: Some("output_texture"),
             size: surface_size.into(),
