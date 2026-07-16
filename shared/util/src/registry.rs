@@ -74,3 +74,30 @@ impl<V> Clone for Handle<V> {
 impl<V> Handle<V> {
     fn new(id: usize) -> Self { Self(id, PhantomData) }
 }
+
+
+pub trait HasRegistry<K, V> {
+    fn get_registry(&self) -> &Registry<K, V>;
+    fn get_registry_mut(&mut self) -> &mut Registry<K, V>;
+}
+
+#[macro_export]
+macro_rules! multiregistry {
+    (
+        $multiregistry:ty,
+        $key_ty:ty,
+        $($registry_ty:ty => $field:ident),+ $(,)?
+    ) => {
+        $(
+            impl $crate::HasRegistry<$key_ty, $registry_ty> for $multiregistry {
+                fn get_registry(&self) -> &$crate::Registry<$key_ty, $registry_ty> {
+                    &self.$field
+                }
+
+                fn get_registry_mut(&mut self) -> &mut $crate::Registry<$key_ty, $registry_ty> {
+                    &mut self.$field
+                }
+            }
+        )+
+    };
+}

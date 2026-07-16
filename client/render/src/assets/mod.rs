@@ -6,9 +6,9 @@ use std::ops::Index;
 use thiserror::Error;
 use wgpu::Device;
 
-use starflow_util::{Handle, Registry};
+use starflow_util::{Handle, HasRegistry, Registry, multiregistry};
 
-use crate::core::RenderSurface;
+use crate::{core::RenderSurface, util::Key};
 
 
 pub struct RenderAssetsCreation<'renderer> {
@@ -34,7 +34,7 @@ impl<'r> RenderAssetsCreation<'r> {
     pub fn create<'a, D>(&mut self, descriptor: D) -> AssetResult<'a, Handle<D::Asset>>
     where
         D: RenderAssetDesc<'a>,
-        RenderAssets: HasRegistry<D::Asset>
+        RenderAssets: HasRegistry<Key, D::Asset>
     {
         let key = descriptor.key().into();
         let asset = descriptor.create(self)?;
@@ -74,51 +74,54 @@ mod sealed {
 }
 
 
-type AssetRegistry<R> = Registry<Box<str>, R>;
-
 #[derive(Default)]
 pub struct RenderAssets {
-    bind_group_layouts: AssetRegistry<wgpu::BindGroupLayout>,
-    pipeline_layouts: AssetRegistry<wgpu::PipelineLayout>,
-    shader_modules: AssetRegistry<wgpu::ShaderModule>,
-    render_pipelines: AssetRegistry<wgpu::RenderPipeline>,
-    compute_pipelines: AssetRegistry<wgpu::ComputePipeline>
+    bind_group_layouts: Registry<Key, wgpu::BindGroupLayout>,
+    pipeline_layouts: Registry<Key, wgpu::PipelineLayout>,
+    shader_modules: Registry<Key, wgpu::ShaderModule>,
+    render_pipelines: Registry<Key, wgpu::RenderPipeline>,
+    compute_pipelines: Registry<Key, wgpu::ComputePipeline>
+}
+
+multiregistry! {
+    RenderAssets, Key,
+    wgpu::BindGroupLayout => bind_group_layouts,
+    wgpu::PipelineLayout => pipeline_layouts,
+    wgpu::ShaderModule => shader_modules,
+    wgpu::RenderPipeline => render_pipelines,
+    wgpu::ComputePipeline => compute_pipelines
 }
 
 impl RenderAssets {
-    #[allow(private_bounds)]
     pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
     where
         R: RenderAsset,
-        Self: HasRegistry<R>
+        Self: HasRegistry<Key, R>
     {
         self.get_registry().get_handle(key)
     }
 
-    #[allow(private_bounds)]
     pub fn get_asset<R>(&self, key: &str) -> Option<&R>
     where
         R: RenderAsset,
-        Self: HasRegistry<R>
+        Self: HasRegistry<Key, R>
     {
         self.get_registry().get(key)
     }
 
-    #[allow(private_bounds)]
     pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
     where
         R: RenderAsset,
-        Self: HasRegistry<R>
+        Self: HasRegistry<Key, R>
     {
         self.get_handle(key)
             .ok_or(AssetError::MissingDependency(key))
     }
 
-    #[allow(private_bounds)]
     pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
     where
         R: RenderAsset,
-        Self: HasRegistry<R>
+        Self: HasRegistry<Key, R>
     {
         self.get_asset(key)
             .ok_or(AssetError::MissingDependency(key))
@@ -128,35 +131,9 @@ impl RenderAssets {
 impl<R> Index<&Handle<R>> for RenderAssets
 where
     R: RenderAsset,
-    RenderAssets: HasRegistry<R>
+    RenderAssets: HasRegistry<Key, R>
 {
     type Output = R;
 
     fn index(&self, index: &Handle<R>) -> &Self::Output { &self.get_registry()[index] }
 }
-
-
-trait HasRegistry<A>
-where A: RenderAsset
-{
-    fn get_registry(&self) -> &AssetRegistry<A>;
-    fn get_registry_mut(&mut self) -> &mut AssetRegistry<A>;
-}
-
-macro_rules! impl_has_registry {
-    ($render_assets:ty, $asset_ty:ty, $field:ident) => {
-        impl HasRegistry<$asset_ty> for $render_assets {
-            fn get_registry(&self) -> &AssetRegistry<$asset_ty> { &self.$field }
-
-            fn get_registry_mut(&mut self) -> &mut AssetRegistry<$asset_ty> {
-                &mut self.$field
-            }
-        }
-    };
-}
-
-impl_has_registry!(RenderAssets, wgpu::BindGroupLayout, bind_group_layouts);
-impl_has_registry!(RenderAssets, wgpu::PipelineLayout, pipeline_layouts);
-impl_has_registry!(RenderAssets, wgpu::ShaderModule, shader_modules);
-impl_has_registry!(RenderAssets, wgpu::RenderPipeline, render_pipelines);
-impl_has_registry!(RenderAssets, wgpu::ComputePipeline, compute_pipelines);
