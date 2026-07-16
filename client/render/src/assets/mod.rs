@@ -43,12 +43,12 @@ impl<'r> RenderAssetsCreation<'r> {
 }
 
 
-pub type AssetResult<'a, R> = Result<R, AssetError<'a>>;
+pub type AssetResult<'key, R> = Result<R, AssetError<'key>>;
 
 #[derive(Error, Debug)]
-pub enum AssetError<'a> {
+pub enum AssetError<'key> {
     #[error("Missing dependecy: {0}")]
-    MissingDependency(&'a str)
+    MissingDependency(&'key str)
 }
 
 

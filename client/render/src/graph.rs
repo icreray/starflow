@@ -35,7 +35,6 @@ impl RenderGraph {
 }
 
 
-#[allow(private_interfaces)]
 pub trait RenderNode {
     fn run(
         &self,
