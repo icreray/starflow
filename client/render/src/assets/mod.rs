@@ -93,45 +93,40 @@ multiregistry! {
 }
 
 impl RenderAssets {
+    #[inline(always)]
     pub fn get_handle<R>(&self, key: &str) -> Option<Handle<R>>
-    where
-        R: RenderAsset,
-        Self: HasRegistry<Key, R>
-    {
+    where Self: HasRegistry<Key, R> {
         self.get_registry().get_handle(key)
     }
 
+    #[inline(always)]
     pub fn get_asset<R>(&self, key: &str) -> Option<&R>
-    where
-        R: RenderAsset,
-        Self: HasRegistry<Key, R>
-    {
+    where Self: HasRegistry<Key, R> {
         self.get_registry().get(key)
     }
 
-    pub fn get_dependency_handle<'a, R>(&self, key: &'a str) -> AssetResult<'a, Handle<R>>
+    #[inline(always)]
+    pub fn get_dependency_handle<'a, R>(
+        &self,
+        key: &'a str
+    ) -> AssetResult<'a, Handle<R>>
     where
-        R: RenderAsset,
         Self: HasRegistry<Key, R>
     {
         self.get_handle(key)
             .ok_or(AssetError::MissingDependency(key))
     }
 
+    #[inline(always)]
     pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
-    where
-        R: RenderAsset,
-        Self: HasRegistry<Key, R>
-    {
+    where Self: HasRegistry<Key, R> {
         self.get_asset(key)
             .ok_or(AssetError::MissingDependency(key))
     }
 }
 
 impl<R> Index<&Handle<R>> for RenderAssets
-where
-    R: RenderAsset,
-    RenderAssets: HasRegistry<Key, R>
+where RenderAssets: HasRegistry<Key, R>
 {
     type Output = R;
 

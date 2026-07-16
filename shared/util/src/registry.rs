@@ -1,7 +1,8 @@
-use default::default;
 use std::{borrow::Borrow, hash::Hash, marker::PhantomData, ops::Index};
 
 use ahash::AHashMap;
+
+use crate::default;
 
 
 pub struct Registry<K, V> {
@@ -35,6 +36,7 @@ where K: Eq + Hash
         }
     }
 
+    #[inline(always)]
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
     where
         K: Borrow<Q>,
@@ -43,6 +45,7 @@ where K: Eq + Hash
         self.get_handle(key).map(|id| &self[id])
     }
 
+    #[inline(always)]
     pub fn get_handle<Q: ?Sized>(&self, key: &Q) -> Option<Handle<V>>
     where
         K: Borrow<Q>,
@@ -90,10 +93,12 @@ macro_rules! multiregistry {
     ) => {
         $(
             impl $crate::HasRegistry<$key_ty, $registry_ty> for $multiregistry {
+                #[inline(always)]
                 fn get_registry(&self) -> &$crate::Registry<$key_ty, $registry_ty> {
                     &self.$field
                 }
 
+                #[inline(always)]
                 fn get_registry_mut(&mut self) -> &mut $crate::Registry<$key_ty, $registry_ty> {
                     &mut self.$field
                 }
