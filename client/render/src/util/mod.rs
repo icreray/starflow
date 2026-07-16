@@ -1,5 +1,7 @@
+mod bind_groups;
+mod surface;
+
 pub(crate) use bind_groups::*;
 pub use surface::*;
 
-mod bind_groups;
-mod surface;
+pub use wgpu::Color;

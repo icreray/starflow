@@ -5,7 +5,7 @@ use wgpu::{
 
 use starflow_util::{Size, default};
 
-use crate::{assets::RenderAssets, core::util::AsBindGroupEntry};
+use crate::{assets::RenderAssets, util::AsBindGroupEntry};
 
 
 // TODO: Refactoring :D

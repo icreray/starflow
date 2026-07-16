@@ -1,5 +1,3 @@
-pub mod util;
-
 mod surface;
 
 pub(crate) use surface::*;
