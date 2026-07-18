@@ -8,7 +8,10 @@ use wgpu::{
 
 use starflow_util::default;
 
-use crate::assets::{AssetResult, RenderAssetDesc, RenderAssetsCreation};
+use crate::{
+    assets::RenderAssetsCreation,
+    core::{RenderObjectDesc, RenderObjectResult}
+};
 
 
 pub struct BindGroupLayout<'a> {
@@ -22,12 +25,15 @@ impl<'a> BindGroupLayout<'a> {
     }
 }
 
-impl<'a> RenderAssetDesc<'a> for BindGroupLayout<'a> {
-    type Asset = wgpu::BindGroupLayout;
+impl<'a> RenderObjectDesc<'a, RenderAssetsCreation<'_>> for BindGroupLayout<'a> {
+    type Object = wgpu::BindGroupLayout;
 
     fn key(&self) -> &str { &self.key }
 
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
+    fn try_create(
+        self,
+        ctx: &RenderAssetsCreation<'_>
+    ) -> RenderObjectResult<'a, Self::Object> {
         Ok(ctx
             .device
             .create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -44,12 +50,15 @@ pub struct PipelineLayout<'a> {
     pub immediate_size: u32
 }
 
-impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
-    type Asset = wgpu::PipelineLayout;
+impl<'a> RenderObjectDesc<'a, RenderAssetsCreation<'_>> for PipelineLayout<'a> {
+    type Object = wgpu::PipelineLayout;
 
     fn key(&self) -> &str { &self.key }
 
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
+    fn try_create(
+        self,
+        ctx: &RenderAssetsCreation<'_>
+    ) -> RenderObjectResult<'a, Self::Object> {
         let layouts = self
             .bind_group_layouts
             .iter()
@@ -58,7 +67,7 @@ impl<'a> RenderAssetDesc<'a> for PipelineLayout<'a> {
                     .map(|key| ctx.assets.get_dependency_asset(key))
                     .transpose()
             })
-            .collect::<AssetResult<'a, Vec<_>>>()?;
+            .collect::<RenderObjectResult<'a, Vec<_>>>()?;
         Ok(ctx
             .device
             .create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -79,49 +88,19 @@ impl<'a> ShaderModule<'a> {
     pub fn new(key: &'a str, source: ShaderSource<'a>) -> Self { Self { key, source } }
 }
 
-impl<'a> RenderAssetDesc<'a> for ShaderModule<'a> {
-    type Asset = wgpu::ShaderModule;
+impl<'a> RenderObjectDesc<'a, RenderAssetsCreation<'_>> for ShaderModule<'a> {
+    type Object = wgpu::ShaderModule;
 
     fn key(&self) -> &str { &self.key }
 
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
+    fn try_create(
+        self,
+        ctx: &RenderAssetsCreation<'_>
+    ) -> RenderObjectResult<'a, Self::Object> {
         Ok(ctx.device.create_shader_module(ShaderModuleDescriptor {
             label: Some(self.key),
             source: self.source
         }))
-    }
-}
-
-
-pub struct ComputePipeline<'a> {
-    pub key: &'a str,
-    pub layout: Option<&'a str>,
-    pub module: &'a str
-}
-
-impl<'a> RenderAssetDesc<'a> for ComputePipeline<'a> {
-    type Asset = wgpu::ComputePipeline;
-
-    fn key(&self) -> &str { &self.key }
-
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
-        let layout = self
-            .layout
-            .map(|layout| ctx.assets.get_dependency_asset(layout))
-            .transpose()?;
-        let module = ctx.assets.get_dependency_asset(self.module)?;
-
-        Ok(ctx
-            .device
-            .create_compute_pipeline(&ComputePipelineDescriptor {
-                label: Some(self.key),
-                layout,
-                module,
-                entry_point: None,
-                // TODO: More granular control (if needed, otherwise remove this todo in future :))
-                compilation_options: default(),
-                cache: None
-            }))
     }
 }
 
@@ -137,12 +116,15 @@ pub struct RenderPipeline<'a> {
     pub multisample: MultisampleState
 }
 
-impl<'a> RenderAssetDesc<'a> for RenderPipeline<'a> {
-    type Asset = wgpu::RenderPipeline;
+impl<'a> RenderObjectDesc<'a, RenderAssetsCreation<'_>> for RenderPipeline<'a> {
+    type Object = wgpu::RenderPipeline;
 
     fn key(&self) -> &str { &self.key }
 
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset> {
+    fn try_create(
+        self,
+        ctx: &RenderAssetsCreation<'_>
+    ) -> RenderObjectResult<'a, Self::Object> {
         let layout = self
             .layout
             .map(|layout| ctx.assets.get_dependency_asset(layout))
@@ -183,6 +165,42 @@ impl<'a> RenderAssetDesc<'a> for RenderPipeline<'a> {
                 depth_stencil: self.depth_stencil,
                 multisample: self.multisample,
                 multiview_mask: None,
+                cache: None
+            }))
+    }
+}
+
+
+pub struct ComputePipeline<'a> {
+    pub key: &'a str,
+    pub layout: Option<&'a str>,
+    pub module: &'a str
+}
+
+impl<'a> RenderObjectDesc<'a, RenderAssetsCreation<'_>> for ComputePipeline<'a> {
+    type Object = wgpu::ComputePipeline;
+
+    fn key(&self) -> &str { &self.key }
+
+    fn try_create(
+        self,
+        ctx: &RenderAssetsCreation<'_>
+    ) -> RenderObjectResult<'a, Self::Object> {
+        let layout = self
+            .layout
+            .map(|layout| ctx.assets.get_dependency_asset(layout))
+            .transpose()?;
+        let module = ctx.assets.get_dependency_asset(self.module)?;
+
+        Ok(ctx
+            .device
+            .create_compute_pipeline(&ComputePipelineDescriptor {
+                label: Some(self.key),
+                layout,
+                module,
+                entry_point: None,
+                // TODO: More granular control (if needed, otherwise remove this todo in future :))
+                compilation_options: default(),
                 cache: None
             }))
     }

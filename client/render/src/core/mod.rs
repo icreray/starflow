@@ -1,5 +1,7 @@
+mod render_object;
 mod surface;
 
+pub use render_object::*;
 pub(crate) use surface::*;
 
 use thiserror::Error;

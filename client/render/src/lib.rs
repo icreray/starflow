@@ -1,10 +1,9 @@
 pub mod assets;
 pub mod config;
+pub mod core;
 pub mod graph;
 pub mod resources;
 pub mod util;
-
-mod core;
 
 use starflow_util::default;
 use thiserror::Error;

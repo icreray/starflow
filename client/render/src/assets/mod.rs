@@ -3,12 +3,14 @@ pub mod util;
 
 use std::ops::Index;
 
-use thiserror::Error;
 use wgpu::Device;
 
 use starflow_util::{Handle, HasRegistry, Registry, multiregistry};
 
-use crate::{core::RenderSurface, util::Key};
+use crate::{
+    core::{RenderObjectDesc, RenderObjectError, RenderObjectResult, RenderSurface},
+    util::Key
+};
 
 
 pub struct RenderAssetsCreation<'renderer> {
@@ -30,47 +32,18 @@ impl<'r> RenderAssetsCreation<'r> {
         }
     }
 
-    #[allow(private_bounds)]
-    pub fn create<'a, D>(&mut self, descriptor: D) -> AssetResult<'a, Handle<D::Asset>>
+    pub fn create<'desc, D>(
+        &mut self,
+        descriptor: D
+    ) -> RenderObjectResult<'desc, Handle<D::Object>>
     where
-        D: RenderAssetDesc<'a>,
-        RenderAssets: HasRegistry<Key, D::Asset>
+        D: RenderObjectDesc<'desc, Self>,
+        RenderAssets: HasRegistry<Key, D::Object>
     {
         let key = descriptor.key().into();
-        let asset = descriptor.create(self)?;
+        let asset = descriptor.try_create(self)?;
         Ok(self.assets.get_registry_mut().set(key, asset))
     }
-}
-
-
-pub type AssetResult<'key, R> = Result<R, AssetError<'key>>;
-
-#[derive(Error, Debug)]
-pub enum AssetError<'key> {
-    #[error("Missing dependecy: {0}")]
-    MissingDependency(&'key str)
-}
-
-
-pub trait RenderAssetDesc<'a> {
-    type Asset: RenderAsset;
-
-    fn key(&self) -> &str;
-    fn create(self, ctx: &RenderAssetsCreation) -> AssetResult<'a, Self::Asset>;
-}
-
-
-pub trait RenderAsset: sealed::RenderAsset {}
-impl<T: sealed::RenderAsset> RenderAsset for T {}
-
-mod sealed {
-    pub trait RenderAsset {}
-
-    impl RenderAsset for wgpu::BindGroupLayout {}
-    impl RenderAsset for wgpu::PipelineLayout {}
-    impl RenderAsset for wgpu::ShaderModule {}
-    impl RenderAsset for wgpu::RenderPipeline {}
-    impl RenderAsset for wgpu::ComputePipeline {}
 }
 
 
@@ -106,22 +79,27 @@ impl RenderAssets {
     }
 
     #[inline(always)]
-    pub fn get_dependency_handle<'a, R>(
+    pub fn get_dependency_handle<'key, R>(
         &self,
-        key: &'a str
-    ) -> AssetResult<'a, Handle<R>>
+        key: &'key str
+    ) -> RenderObjectResult<'key, Handle<R>>
     where
         Self: HasRegistry<Key, R>
     {
         self.get_handle(key)
-            .ok_or(AssetError::MissingDependency(key))
+            .ok_or(RenderObjectError::MissingDependency(key))
     }
 
     #[inline(always)]
-    pub fn get_dependency_asset<'a, R>(&self, key: &'a str) -> AssetResult<'a, &R>
-    where Self: HasRegistry<Key, R> {
+    pub fn get_dependency_asset<'key, R>(
+        &self,
+        key: &'key str
+    ) -> RenderObjectResult<'key, &R>
+    where
+        Self: HasRegistry<Key, R>
+    {
         self.get_asset(key)
-            .ok_or(AssetError::MissingDependency(key))
+            .ok_or(RenderObjectError::MissingDependency(key))
     }
 }
 

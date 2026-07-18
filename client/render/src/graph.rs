@@ -5,8 +5,8 @@ pub use wgpu::{
 use wgpu::{CommandEncoder, Queue};
 
 use crate::{
-    assets::{AssetError, AssetResult, RenderAssets},
-    core::SwapchainTexture,
+    assets::RenderAssets,
+    core::{RenderObjectError, RenderObjectResult, SwapchainTexture},
     resources::RenderResources
 };
 
@@ -56,8 +56,8 @@ impl<'r> RenderGraphCreation<'r> {
     }
 
     #[allow(private_bounds)]
-    pub fn add_node<R: RenderNode>(&mut self) -> AssetResult<'r, ()>
-    where R: TryFrom<&'r RenderAssets, Error = AssetError<'r>> + 'static {
+    pub fn add_node<R: RenderNode>(&mut self) -> RenderObjectResult<'r, ()>
+    where R: TryFrom<&'r RenderAssets, Error = RenderObjectError<'r>> + 'static {
         let node: R = self.assets.try_into()?;
         self.graph.add_node(node);
         Ok(())

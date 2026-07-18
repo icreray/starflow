@@ -2,8 +2,9 @@ use futures_lite::future;
 
 use starflow_render::{
     Renderer,
-    assets::{AssetError, AssetResult, RenderAssets, RenderAssetsCreation},
+    assets::{RenderAssets, RenderAssetsCreation},
     config::{Features, RendererConfig},
+    core::{RenderObjectError, RenderObjectResult},
     graph::{
         ComputePassDescriptor, ComputePipeline, FrameContext, RenderNode,
         RenderPassDescriptor, RenderPipeline
@@ -111,9 +112,9 @@ pub struct MainPass {
 }
 
 impl<'a> TryFrom<&'a RenderAssets> for MainPass {
-    type Error = AssetError<'a>;
+    type Error = RenderObjectError<'a>;
 
-    fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
+    fn try_from(assets: &'a RenderAssets) -> RenderObjectResult<'a, Self> {
         let main_pass = assets.get_dependency_handle("main_pass")?;
         Ok(Self { main_pass })
     }
@@ -146,9 +147,9 @@ pub struct BlitPass {
 }
 
 impl<'a> TryFrom<&'a RenderAssets> for BlitPass {
-    type Error = AssetError<'a>;
+    type Error = RenderObjectError<'a>;
 
-    fn try_from(assets: &'a RenderAssets) -> AssetResult<'a, Self> {
+    fn try_from(assets: &'a RenderAssets) -> RenderObjectResult<'a, Self> {
         let blit = assets.get_dependency_handle("blit")?;
         Ok(Self { blit })
     }
